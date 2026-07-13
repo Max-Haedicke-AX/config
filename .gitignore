@@ -1,0 +1,27 @@
+# DSC Output
+DscOutput/
+*.mof
+
+# PowerShell
+*.psm1~
+*.psd1~
+*.ps1~
+$PSHOME/
+
+# IDE
+.vscode/
+.idea/
+*.code-workspace
+
+# OS
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Logs
+*.log
+logs/
+
+# Temporary files
+*.tmp
+temp/
