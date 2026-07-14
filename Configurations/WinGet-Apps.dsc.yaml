@@ -1,0 +1,315 @@
+$schema: https://aka.ms/dsc/schemas/v3/bundled/config/document.json
+
+resources:
+  # Development Tools
+  - name: PowerToys
+    type: Microsoft.WinGet/Package
+    properties:
+      id: Microsoft.PowerToys
+      source: winget
+      _exist: true
+
+  - name: VSCode
+    type: Microsoft.WinGet/Package
+    properties:
+      id: Microsoft.VisualStudioCode
+      source: winget
+      _exist: true
+
+  - name: VisualStudio2022Professional
+    type: Microsoft.WinGet/Package
+    properties:
+      id: Microsoft.VisualStudio.2022.Professional
+      source: winget
+      _exist: true
+
+  - name: Git
+    type: Microsoft.WinGet/Package
+    properties:
+      id: Git.Git
+      source: winget
+      _exist: true
+
+  # - name: DockerDesktop
+  #   type: Microsoft.WinGet/Package
+  #   properties:
+  #     id: Docker.DockerDesktop
+  #     source: winget
+  #     _exist: true
+
+  - name: RancherDesktop
+    type: Microsoft.WinGet/Package
+    properties:
+      id: SUSE.RancherDesktop
+      source: winget
+      _exist: true
+
+  # .NET SDKs
+  - name: DotNetSDK6
+    type: Microsoft.WinGet/Package
+    properties:
+      id: Microsoft.DotNet.SDK.6
+      source: winget
+      _exist: true
+
+  - name: DotNetSDK7
+    type: Microsoft.WinGet/Package
+    properties:
+      id: Microsoft.DotNet.SDK.7
+      source: winget
+      _exist: true
+
+  - name: DotNetSDK8
+    type: Microsoft.WinGet/Package
+    properties:
+      id: Microsoft.DotNet.SDK.8
+      source: winget
+      _exist: true
+
+  - name: DotNetSDK9
+    type: Microsoft.WinGet/Package
+    properties:
+      id: Microsoft.DotNet.SDK.9
+      source: winget
+      _exist: true
+
+  - name: DotNetSDK10
+    type: Microsoft.WinGet/Package
+    properties:
+      id: Microsoft.DotNet.SDK.10
+      source: winget
+      _exist: true
+
+  # .NET Runtimes
+  - name: DotNetRuntime6
+    type: Microsoft.WinGet/Package
+    properties:
+      id: Microsoft.DotNet.Runtime.6
+      source: winget
+      _exist: true
+
+  - name: DotNetRuntime7
+    type: Microsoft.WinGet/Package
+    properties:
+      id: Microsoft.DotNet.Runtime.7
+      source: winget
+      _exist: true
+
+  - name: DotNetRuntime8
+    type: Microsoft.WinGet/Package
+    properties:
+      id: Microsoft.DotNet.Runtime.8
+      source: winget
+      _exist: true
+
+  - name: DotNetRuntime9
+    type: Microsoft.WinGet/Package
+    properties:
+      id: Microsoft.DotNet.Runtime.9
+      source: winget
+      _exist: true
+
+  - name: DotNetRuntime10
+    type: Microsoft.WinGet/Package
+    properties:
+      id: Microsoft.DotNet.Runtime.10
+      source: winget
+      _exist: true
+
+  # .NET Framework Developer Packs
+  - name: DotNetFramework45
+    type: Microsoft.WinGet/Package
+    properties:
+      id: Microsoft.DotNet.Framework.DeveloperPack.4.5
+      source: winget
+      _exist: true
+
+  - name: DotNetFramework46
+    type: Microsoft.WinGet/Package
+    properties:
+      id: Microsoft.DotNet.Framework.DeveloperPack.4.6
+      source: winget
+      _exist: true
+
+  - name: DotNetFramework4
+    type: Microsoft.WinGet/Package
+    properties:
+      id: Microsoft.DotNet.Framework.DeveloperPack_4
+      source: winget
+      _exist: true
+
+  # Database & Server Tools
+  - name: SSMS
+    type: Microsoft.WinGet/Package
+    properties:
+      id: Microsoft.SQLServerManagementStudio.22
+      source: winget
+      _exist: true
+
+  - name: AzureCLI
+    type: Microsoft.WinGet/Package
+    properties:
+      id: Microsoft.AzureCLI
+      source: winget
+      _exist: true
+
+  # Node.js
+  - name: NodeJS
+    type: Microsoft.WinGet/Package
+    properties:
+      id: OpenJS.NodeJS
+      source: winget
+      _exist: true
+
+  # Browsers
+  - name: GoogleChrome
+    type: Microsoft.WinGet/Package
+    properties:
+      id: Google.Chrome
+      source: winget
+      _exist: true
+
+  - name: MicrosoftEdge
+    type: Microsoft.WinGet/Package
+    properties:
+      id: Microsoft.Edge
+      source: winget
+      _exist: true
+
+  # Communication
+  - name: MicrosoftTeams
+    type: Microsoft.WinGet/Package
+    properties:
+      id: Microsoft.Teams
+      source: winget
+      _exist: true
+
+  - name: Element
+    type: Microsoft.WinGet/Package
+    properties:
+      id: Element.Element
+      source: winget
+      _exist: true
+
+  # API & Testing Tools
+  - name: Postman
+    type: Microsoft.WinGet/Package
+    properties:
+      id: Postman.Postman
+      source: winget
+      _exist: true
+
+  # Utilities
+  - name: 7zip
+    type: Microsoft.WinGet/Package
+    properties:
+      id: 7zip.7zip
+      source: winget
+      _exist: true
+
+  - name: AdobeAcrobatReader
+    type: Microsoft.WinGet/Package
+    properties:
+      id: Adobe.Acrobat.Reader.64-bit
+      source: winget
+      _exist: true
+
+  - name: Gpg4win
+    type: Microsoft.WinGet/Package
+    properties:
+      id: GnuPG.Gpg4win
+      source: winget
+      _exist: true
+
+  - name: GnuPG
+    type: Microsoft.WinGet/Package
+    properties:
+      id: GnuPG.GnuPG
+      source: winget
+      _exist: true
+
+  - name: WindowsTerminal
+    type: Microsoft.WinGet/Package
+    properties:
+      id: Microsoft.WindowsTerminal
+      source: winget
+      _exist: true
+
+  - name: PowerShell
+    type: Microsoft.WinGet/Package
+    properties:
+      id: Microsoft.PowerShell
+      source: winget
+      _exist: true
+
+  - name: OpenSSH
+    type: Microsoft.WinGet/Package
+    properties:
+      id: Microsoft.OpenSSH.Beta
+      source: winget
+      _exist: true
+
+  - name: PuTTY
+    type: Microsoft.WinGet/Package
+    properties:
+      id: PuTTY.PuTTY
+      source: winget
+      _exist: true
+
+  - name: Tailscale
+    type: Microsoft.WinGet/Package
+    properties:
+      id: tailscale.tailscale
+      source: winget
+      _exist: true
+
+  - name: WinDirStat
+    type: Microsoft.WinGet/Package
+    properties:
+      id: WinDirStat.WinDirStat
+      source: winget
+      _exist: true
+
+  - name: ReportBuilder
+    type: Microsoft.WinGet/Package
+    properties:
+      id: Microsoft.ReportBuilder
+      source: winget
+      _exist: true
+
+  - name: PolyLens
+    type: Microsoft.WinGet/Package
+    properties:
+      id: Poly.PolyLens
+      source: winget
+      _exist: true
+
+  - name: mRemoteNG
+    type: Microsoft.WinGet/Package
+    properties:
+      id: mRemoteNG.mRemoteNG
+      source: winget
+      _exist: true
+
+  - name: NotepadPlusPlus
+    type: Microsoft.WinGet/Package
+    properties:
+      id: Notepad++.Notepad++
+      source: winget
+      _exist: true
+
+  # Development Analysis Tools
+  - name: BeyondCompare
+    type: Microsoft.WinGet/Package
+    properties:
+      id: ScooterSoftware.BeyondCompare.5
+      source: winget
+      _exist: true
+
+  # Security
+  - name: KeePassXC
+    type: Microsoft.WinGet/Package
+    properties:
+      id: KeePassXCTeam.KeePassXC
+      source: winget
+      _exist: true

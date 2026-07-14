@@ -1,80 +1,53 @@
-# DSC Configuration Project
+# DSC v3 Minimalprojekt
 
-Desired State Configuration (DSC) project for infrastructure and application configuration management.
+Dieses Repo enthält eine minimale DSC-v3-Konfiguration für Git.
 
-## Project Structure
+## Datei
 
-```
-.
-├── Roles/                 # DSC Roles
-│   └── GitSetup/         # Git installation and configuration
-│       ├── GitSetup.psm1 # Role module implementation
-│       └── GitSetup.psd1 # Role manifest
-├── Configurations/        # DSC Configurations
-│   └── GitConfiguration.ps1
-└── README.md
-```
+- Config: ./Configurations/GitConfiguration.dsc.yaml
 
-## Roles
+## Voraussetzungen
 
-### GitSetup
-Installs Git via WinGet and configures global Git settings including:
-- User name (from Windows username)
-- User email
-- core.autocrlf = true
-- init.defaultBranch = main
-- pull.rebase = false
+- Windows 10/11
+- winget
+- DSC v3 CLI
 
-## Quick Start
-
-### Clone and Apply Git Configuration (One-Liner)
+Installation der DSC CLI:
 
 ```powershell
-git clone https://github.com/Max-Haedicke-AX/config.git c:\dsc-config; cd c:\dsc-config; powershell -ExecutionPolicy Bypass -Command "Import-Module '.\Roles\GitSetup\GitSetup.psm1' -Force; Install-GitRole"
+winget install --id Microsoft.DSC --exact --source winget --accept-source-agreements --accept-package-agreements
 ```
 
-### Manual Setup
+Version prüfen:
 
-1. **Clone the repository:**
 ```powershell
-git clone https://github.com/Max-Haedicke-AX/config.git c:\dsc-config
-cd c:\dsc-config
+dsc --version
 ```
 
-2. **Apply Git role:**
+## Build und Ausführen
+
+Bei DSC v3 YAML gibt es keinen klassischen MOF-Build mehr. Stattdessen validierst und wendest du die Konfiguration direkt an.
+
+1. Konfiguration testen (Dry Run)
+
 ```powershell
-Import-Module '.\Roles\GitSetup\GitSetup.psm1' -Force
-Install-GitRole -UserEmail "your.email@company.com"
+dsc config test --file .\Configurations\GitConfiguration.dsc.yaml --output-format pretty-json
 ```
 
-3. **Or use DSC configuration:**
+1. Konfiguration anwenden
+
 ```powershell
-cd c:\dsc-config
-. .\Configurations\GitConfiguration.ps1
-GitConfiguration -OutputPath "C:\DscOutput"
-Start-DscConfiguration -Path "C:\DscOutput" -Wait -Verbose
+dsc config set --file .\Configurations\GitConfiguration.dsc.yaml --output-format pretty-json
 ```
 
-## Requirements
+1. Aktuellen Zustand abrufen
 
-- Windows PowerShell 5.1 or PowerShell 7+
-- WinGet (Windows Package Manager)
-- Administrator privileges for DSC application
+```powershell
+dsc config get --file .\Configurations\GitConfiguration.dsc.yaml --output-format pretty-json
+```
 
-## Configuration
+## Hinweis
 
-Edit `Roles\GitSetup\GitSetup.psm1` to customize:
-- Default email domain
-- Additional Git configuration options
-
-## Contributing
-
-When adding new roles:
-1. Create a new directory under `Roles/`
-2. Include `RoleName.psm1` and `RoleName.psd1`
-3. Add configuration examples in `Configurations/`
-4. Update this README
-
-## License
-
-Internal Use Only
+Die Git-Konfiguration nutzt derzeit den verfügbaren Ressourcentyp Microsoft.DSC.Transitional/RunCommandOnSet.
+Die Paketinstallation erfolgt über Microsoft.WinGet/Package mit `_exist: true`.
+`RunCommandOnSet` ist laut DSC-Hinweis nicht idempotent.

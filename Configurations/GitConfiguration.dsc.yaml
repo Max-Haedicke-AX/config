@@ -1,0 +1,92 @@
+$schema: https://aka.ms/dsc/schemas/v3/bundled/config/document.json
+resources:
+  - name: InstallGit
+    type: Microsoft.WinGet/Package
+    properties:
+      id: Git.Git
+      source: winget
+      _exist: true
+
+  - name: InitDefaultBranch
+    type: Microsoft.DSC.Transitional/RunCommandOnSet
+    dependsOn:
+      - "[resourceId('Microsoft.WinGet/Package','InstallGit')]"
+    properties:
+      executable: git
+      arguments:
+        - config
+        - --global
+        - init.defaultBranch
+        - main
+
+  # - name: AutoCRLF
+  #   type: Microsoft.DSC.Transitional/RunCommandOnSet
+  #   dependsOn:
+  #     - "[resourceId('Microsoft.WinGet/Package','InstallGit')]"
+  #   properties:
+  #     executable: git
+  #     arguments:
+  #       - config
+  #       - --global
+  #       - core.autocrlf
+  #       - input
+
+  # - name: Editor
+  #   type: Microsoft.DSC.Transitional/RunCommandOnSet
+  #   dependsOn:
+  #     - "[resourceId('Microsoft.WinGet/Package','InstallGit')]"
+  #   properties:
+  #     executable: git
+  #     arguments:
+  #       - config
+  #       - --global
+  #       - core.editor
+  #       - code --wait
+
+  - name: PullRebase
+    type: Microsoft.DSC.Transitional/RunCommandOnSet
+    dependsOn:
+      - "[resourceId('Microsoft.WinGet/Package','InstallGit')]"
+    properties:
+      executable: git
+      arguments:
+        - config
+        - --global
+        - pull.rebase
+        - "true"
+
+  - name: FetchPrune
+    type: Microsoft.DSC.Transitional/RunCommandOnSet
+    dependsOn:
+      - "[resourceId('Microsoft.WinGet/Package','InstallGit')]"
+    properties:
+      executable: git
+      arguments:
+        - config
+        - --global
+        - fetch.prune
+        - "true"
+
+  - name: CredentialManager
+    type: Microsoft.DSC.Transitional/RunCommandOnSet
+    dependsOn:
+      - "[resourceId('Microsoft.WinGet/Package','InstallGit')]"
+    properties:
+      executable: git
+      arguments:
+        - config
+        - --global
+        - credential.helper
+        - manager
+
+  - name: LongPaths
+    type: Microsoft.DSC.Transitional/RunCommandOnSet
+    dependsOn:
+      - "[resourceId('Microsoft.WinGet/Package','InstallGit')]"
+    properties:
+      executable: git
+      arguments:
+        - config
+        - --global
+        - core.longpaths
+        - "true"

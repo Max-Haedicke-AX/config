@@ -1,0 +1,37 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "DSC: Test Config (Select File)",
+      "type": "shell",
+      "command": "dsc",
+      "args": [
+        "config",
+        "test",
+        "--file",
+        "${input:dscConfigFile}",
+        "--output-format",
+        "pretty-json"
+      ],
+      "group": "test",
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "clear": true
+      },
+      "problemMatcher": []
+    }
+  ],
+  "inputs": [
+    {
+      "id": "dscConfigFile",
+      "type": "pickString",
+      "description": "Select DSC config file",
+      "default": ".\\Configurations\\Store-Apps.dsc.yaml",
+      "options": [
+        ".\\Configurations\\Store-Apps.dsc.yaml",
+        ".\\Configurations\\GitConfiguration.dsc.yaml"
+      ]
+    }
+  ]
+}
