@@ -1,0 +1,35 @@
+$schema: https://aka.ms/dsc/schemas/v3/bundled/config/document.json
+
+# AppSpace: Pipeline Migration & Portal CLI Setup
+# Docs: https://teams.microsoft.com/l/message/19:02904ab9858243cc83aab67b432d96bd@thread.tacv2/1748265892705
+
+resources:
+  - name: InstallVstsNpmAuth
+    type: Microsoft.DSC.Transitional/RunCommandOnSet
+    properties:
+      executable: powershell
+      arguments:
+        - -Command
+        - npm install -g vsts-npm-auth --registry https://registry.npmjs.com --always-auth false
+
+  - name: InstallArtifactsCredProvider
+    type: Microsoft.DSC.Transitional/RunCommandOnSet
+    properties:
+      executable: powershell
+      arguments:
+        - -Command
+        - "& { $(Invoke-RestMethod https://aka.ms/install-artifacts-credprovider.ps1) } -AddNetfx"
+
+  - name: InstallPortalCLI
+    type: Microsoft.DSC.Transitional/RunCommandOnSet
+    dependsOn:
+      - "[resourceId('Microsoft.DSC.Transitional/RunCommandOnSet','InstallArtifactsCredProvider')]"
+    properties:
+      executable: dotnet
+      arguments:
+        - tool
+        - install
+        - --global
+        - --add-source
+        - https://pkgs.dev.azure.com/axiansinfoma/_packaging/a6913196-44dc-74db-bdff-d2ed29cc4284/nuget/v3/index.json
+        - Portal.CLI

@@ -1,0 +1,334 @@
+$schema: https://aka.ms/dsc/schemas/v3/bundled/config/document.json
+
+# Git Repository Clones
+# Comment out repositories you don't need.
+# RunCommandOnSet skips cloning if the target folder already exists.
+
+resources:
+  # AppSpace-App
+  - name: Clone ePayment
+    type: Microsoft.DSC.Transitional/RunCommandOnSet
+    properties:
+      executable: pwsh
+      arguments:
+        - -Command
+        - if (-not (Test-Path 'C:\DEV\Infoma.App.Citizen.ePayment')) { git clone 'https://axiansinfoma@dev.azure.com/axiansinfoma/AppSpace-App/_git/Infoma.App.Citizen.ePayment' 'C:\DEV\Infoma.App.Citizen.ePayment' }
+
+  - name: Clone DocumentInformationHKR
+    type: Microsoft.DSC.Transitional/RunCommandOnSet
+    properties:
+      executable: pwsh
+      arguments:
+        - -Command
+        - if (-not (Test-Path 'C:\DEV\Infoma.App.DocumentInformationHKR')) { git clone 'https://axiansinfoma@dev.azure.com/axiansinfoma/AppSpace-App/_git/Infoma.App.DocumentInformationHKR' 'C:\DEV\Infoma.App.DocumentInformationHKR' }
+
+  - name: Clone DocumentInformation
+    type: Microsoft.DSC.Transitional/RunCommandOnSet
+    properties:
+      executable: pwsh
+      arguments:
+        - -Command
+        - if (-not (Test-Path 'C:\DEV\Infoma.App.DocumentInformation')) { git clone 'https://axiansinfoma@dev.azure.com/axiansinfoma/AppSpace-App/_git/Infoma.App.DocumentInformation' 'C:\DEV\Infoma.App.DocumentInformation' }
+
+  - name: Clone Faktura
+    type: Microsoft.DSC.Transitional/RunCommandOnSet
+    properties:
+      executable: pwsh
+      arguments:
+        - -Command
+        - if (-not (Test-Path 'C:\DEV\Infoma.App.Faktura')) { git clone 'https://axiansinfoma@dev.azure.com/axiansinfoma/AppSpace-App/_git/Infoma.App.Faktura' 'C:\DEV\Infoma.App.Faktura' }
+
+  - name: Clone WebCashRegister
+    type: Microsoft.DSC.Transitional/RunCommandOnSet
+    properties:
+      executable: pwsh
+      arguments:
+        - -Command
+        - if (-not (Test-Path 'C:\DEV\Infoma.App.WebCashRegister')) { git clone 'https://axiansinfoma@dev.azure.com/axiansinfoma/AppSpace-App/_git/Infoma.App.WebCashRegister' 'C:\DEV\Infoma.App.WebCashRegister' }
+
+  - name: Clone AccountingBase
+    type: Microsoft.DSC.Transitional/RunCommandOnSet
+    properties:
+      executable: pwsh
+      arguments:
+        - -Command
+        - if (-not (Test-Path 'C:\DEV\Infoma.App.AccountingBase')) { git clone 'https://axiansinfoma@dev.azure.com/axiansinfoma/AppSpace-App/_git/Infoma.App.AccountingBase' 'C:\DEV\Infoma.App.AccountingBase' }
+
+  - name: Clone BudgetInformation
+    type: Microsoft.DSC.Transitional/RunCommandOnSet
+    properties:
+      executable: pwsh
+      arguments:
+        - -Command
+        - if (-not (Test-Path 'C:\DEV\Infoma.App.BudgetInformation')) { git clone 'https://axiansinfoma@dev.azure.com/axiansinfoma/AppSpace-App/_git/Infoma.App.BudgetInformation' 'C:\DEV\Infoma.App.BudgetInformation' }
+
+  - name: Clone BudgetPlanning
+    type: Microsoft.DSC.Transitional/RunCommandOnSet
+    properties:
+      executable: pwsh
+      arguments:
+        - -Command
+        - if (-not (Test-Path 'C:\DEV\Infoma.App.BudgetPlanning')) { git clone 'https://axiansinfoma@dev.azure.com/axiansinfoma/AppSpace-App/_git/Infoma.App.BudgetPlanning' 'C:\DEV\Infoma.App.BudgetPlanning' }
+
+  - name: Clone CashReceiptNotice
+    type: Microsoft.DSC.Transitional/RunCommandOnSet
+    properties:
+      executable: pwsh
+      arguments:
+        - -Command
+        - if (-not (Test-Path 'C:\DEV\Infoma.App.CashReceiptNotice')) { git clone 'https://axiansinfoma@dev.azure.com/axiansinfoma/AppSpace-App/_git/Infoma.App.CashReceiptNotice' 'C:\DEV\Infoma.App.CashReceiptNotice' }
+
+  - name: Clone AppSpaceShared
+    type: Microsoft.DSC.Transitional/RunCommandOnSet
+    properties:
+      executable: pwsh
+      arguments:
+        - -Command
+        - if (-not (Test-Path 'C:\DEV\Infoma.AppSpace.Shared')) { git clone 'https://axiansinfoma@dev.azure.com/axiansinfoma/AppSpace-App/_git/Infoma.AppSpace.Shared' 'C:\DEV\Infoma.AppSpace.Shared' }
+
+  - name: Clone UnscheduledExpenses
+    type: Microsoft.DSC.Transitional/RunCommandOnSet
+    properties:
+      executable: pwsh
+      arguments:
+        - -Command
+        - if (-not (Test-Path 'C:\DEV\Infoma.App.UnscheduledExpenses')) { git clone 'https://axiansinfoma@dev.azure.com/axiansinfoma/AppSpace-App/_git/Infoma.App.UnscheduledExpenses' 'C:\DEV\Infoma.App.UnscheduledExpenses' }
+
+  - name: Clone FiBuSupport
+    type: Microsoft.DSC.Transitional/RunCommandOnSet
+    properties:
+      executable: pwsh
+      arguments:
+        - -Command
+        - if (-not (Test-Path 'C:\DEV\Infoma.App.FiBuSupport')) { git clone 'https://axiansinfoma@dev.azure.com/axiansinfoma/AppSpace-App/_git/Infoma.App.FiBuSupport' 'C:\DEV\Infoma.App.FiBuSupport' }
+
+  - name: Clone BudgetInformationHKR
+    type: Microsoft.DSC.Transitional/RunCommandOnSet
+    properties:
+      executable: pwsh
+      arguments:
+        - -Command
+        - if (-not (Test-Path 'C:\DEV\Infoma.App.BudgetInformationHKR')) { git clone 'https://axiansinfoma@dev.azure.com/axiansinfoma/AppSpace-App/_git/Infoma.App.BudgetInformationHKR' 'C:\DEV\Infoma.App.BudgetInformationHKR' }
+
+  - name: Clone ConvertPDFToWord
+    type: Microsoft.DSC.Transitional/RunCommandOnSet
+    properties:
+      executable: pwsh
+      arguments:
+        - -Command
+        - if (-not (Test-Path 'C:\DEV\Infoma.Dll.ConvertPDFToWord')) { git clone 'https://axiansinfoma@dev.azure.com/axiansinfoma/AppSpace-App/_git/Infoma.Dll.ConvertPDFToWord' 'C:\DEV\Infoma.Dll.ConvertPDFToWord' }
+
+  - name: Clone InsolvencyNotice
+    type: Microsoft.DSC.Transitional/RunCommandOnSet
+    properties:
+      executable: pwsh
+      arguments:
+        - -Command
+        - if (-not (Test-Path 'C:\DEV\Infoma.App.InsolvencyNotice')) { git clone 'https://axiansinfoma@dev.azure.com/axiansinfoma/AppSpace-App/_git/Infoma.App.InsolvencyNotice' 'C:\DEV\Infoma.App.InsolvencyNotice' }
+
+  - name: Clone DummyWF4U
+    type: Microsoft.DSC.Transitional/RunCommandOnSet
+    properties:
+      executable: pwsh
+      arguments:
+        - -Command
+        - if (-not (Test-Path 'C:\DEV\Infoma.Dummy.WF4U')) { git clone 'https://axiansinfoma@dev.azure.com/axiansinfoma/AppSpace-App/_git/Infoma.Dummy.WF4U' 'C:\DEV\Infoma.Dummy.WF4U' }
+
+  - name: Clone Anordnungswesen
+    type: Microsoft.DSC.Transitional/RunCommandOnSet
+    properties:
+      executable: pwsh
+      arguments:
+        - -Command
+        - if (-not (Test-Path 'C:\DEV\Infoma.App.Anordnungswesen')) { git clone 'https://axiansinfoma@dev.azure.com/axiansinfoma/AppSpace-App/_git/Infoma.App.Anordnungswesen' 'C:\DEV\Infoma.App.Anordnungswesen' }
+
+  - name: Clone BudgetPlanningHKR
+    type: Microsoft.DSC.Transitional/RunCommandOnSet
+    properties:
+      executable: pwsh
+      arguments:
+        - -Command
+        - if (-not (Test-Path 'C:\DEV\Infoma.App.BudgetPlanningHKR')) { git clone 'https://axiansinfoma@dev.azure.com/axiansinfoma/AppSpace-App/_git/Infoma.App.BudgetPlanningHKR' 'C:\DEV\Infoma.App.BudgetPlanningHKR' }
+
+  - name: Clone eSachaufklaerung
+    type: Microsoft.DSC.Transitional/RunCommandOnSet
+    properties:
+      executable: pwsh
+      arguments:
+        - -Command
+        - "if (-not (Test-Path 'C:\\DEV\\Infoma.App.eSachaufkl\u00e4rung')) { git clone 'https://axiansinfoma@dev.azure.com/axiansinfoma/AppSpace-App/_git/Infoma.App.eSachaufkl%C3%A4rung' 'C:\\DEV\\Infoma.App.eSachaufkl\u00e4rung' }"
+
+  - name: Clone PostingHKR
+    type: Microsoft.DSC.Transitional/RunCommandOnSet
+    properties:
+      executable: pwsh
+      arguments:
+        - -Command
+        - if (-not (Test-Path 'C:\DEV\Infoma.App.PostingHKR')) { git clone 'https://axiansinfoma@dev.azure.com/axiansinfoma/AppSpace-App/_git/Infoma.App.PostingHKR' 'C:\DEV\Infoma.App.PostingHKR' }
+
+  # AppSpace-Customizing
+  - name: Clone AddressMgmt
+    type: Microsoft.DSC.Transitional/RunCommandOnSet
+    properties:
+      executable: pwsh
+      arguments:
+        - -Command
+        - if (-not (Test-Path 'C:\DEV\Infoma.App.AddressMgmt')) { git clone 'https://axiansinfoma@dev.azure.com/axiansinfoma/AppSpace-Customizing/_git/Infoma.App.AddressMgmt' 'C:\DEV\Infoma.App.AddressMgmt' }
+
+  # AppSpace-Framework
+  - name: Clone ALrpcNETRuntime
+    type: Microsoft.DSC.Transitional/RunCommandOnSet
+    properties:
+      executable: pwsh
+      arguments:
+        - -Command
+        - if (-not (Test-Path 'C:\DEV\ALrpc.NET.Runtime')) { git clone 'https://axiansinfoma@dev.azure.com/axiansinfoma/AppSpace-Framework/_git/ALrpc.NET.Runtime' 'C:\DEV\ALrpc.NET.Runtime' }
+
+  - name: Clone NewsystemConnector
+    type: Microsoft.DSC.Transitional/RunCommandOnSet
+    properties:
+      executable: pwsh
+      arguments:
+        - -Command
+        - if (-not (Test-Path 'C:\DEV\Infoma.App.Newsystem.Connector')) { git clone 'https://axiansinfoma@dev.azure.com/axiansinfoma/AppSpace-Framework/_git/Infoma.App.Newsystem.Connector' 'C:\DEV\Infoma.App.Newsystem.Connector' }
+
+  - name: Clone PortalLicensing
+    type: Microsoft.DSC.Transitional/RunCommandOnSet
+    properties:
+      executable: pwsh
+      arguments:
+        - -Command
+        - if (-not (Test-Path 'C:\DEV\Infoma.Portal.Internal.Licensing')) { git clone 'https://axiansinfoma@dev.azure.com/axiansinfoma/AppSpace-Framework/_git/Infoma.Portal.Internal.Licensing' 'C:\DEV\Infoma.Portal.Internal.Licensing' }
+
+  - name: Clone PortalMasterSystemMgmt
+    type: Microsoft.DSC.Transitional/RunCommandOnSet
+    properties:
+      executable: pwsh
+      arguments:
+        - -Command
+        - if (-not (Test-Path 'C:\DEV\Infoma.Portal.Master.SystemMgmt')) { git clone 'https://axiansinfoma@dev.azure.com/axiansinfoma/AppSpace-Framework/_git/Infoma.Portal.Master.SystemMgmt' 'C:\DEV\Infoma.Portal.Master.SystemMgmt' }
+
+  - name: Clone PortalTenantSystemMgmt
+    type: Microsoft.DSC.Transitional/RunCommandOnSet
+    properties:
+      executable: pwsh
+      arguments:
+        - -Command
+        - if (-not (Test-Path 'C:\DEV\Infoma.Portal.Tenant.SystemMgmt')) { git clone 'https://axiansinfoma@dev.azure.com/axiansinfoma/AppSpace-Framework/_git/Infoma.Portal.Tenant.SystemMgmt' 'C:\DEV\Infoma.Portal.Tenant.SystemMgmt' }
+
+  - name: Clone Pipelines
+    type: Microsoft.DSC.Transitional/RunCommandOnSet
+    properties:
+      executable: pwsh
+      arguments:
+        - -Command
+        - if (-not (Test-Path 'C:\DEV\Pipelines')) { git clone 'https://axiansinfoma@dev.azure.com/axiansinfoma/AppSpace-Framework/_git/Pipelines' 'C:\DEV\Pipelines' }
+
+  - name: Clone Portal
+    type: Microsoft.DSC.Transitional/RunCommandOnSet
+    properties:
+      executable: pwsh
+      arguments:
+        - -Command
+        - if (-not (Test-Path 'C:\DEV\Portal')) { git clone 'https://axiansinfoma@dev.azure.com/axiansinfoma/AppSpace-Framework/_git/Portal' 'C:\DEV\Portal' }
+
+  - name: Clone GitOpsKubernetes
+    type: Microsoft.DSC.Transitional/RunCommandOnSet
+    properties:
+      executable: pwsh
+      arguments:
+        - -Command
+        - if (-not (Test-Path 'C:\DEV\GitOps-AppSpaceKubernetes')) { git clone 'https://axiansinfoma@dev.azure.com/axiansinfoma/AppSpace-Framework/_git/GitOps-AppSpaceKubernetes' 'C:\DEV\GitOps-AppSpaceKubernetes' }
+
+  # AppSpace-Public
+  - name: Clone ePaymentTestTool
+    type: Microsoft.DSC.Transitional/RunCommandOnSet
+    properties:
+      executable: pwsh
+      arguments:
+        - -Command
+        - if (-not (Test-Path 'C:\DEV\ePaymentTestTool')) { git clone 'https://axiansinfoma@dev.azure.com/axiansinfoma/AppSpace-Public/_git/ePaymentTestTool' 'C:\DEV\ePaymentTestTool' }
+
+  # newsystem
+  - name: Clone newsystem
+    type: Microsoft.DSC.Transitional/RunCommandOnSet
+    properties:
+      executable: pwsh
+      arguments:
+        - -Command
+        - if (-not (Test-Path 'C:\DEV\newsystem')) { git clone 'https://axiansinfoma@dev.azure.com/axiansinfoma/newsystem/_git/newsystem' 'C:\DEV\newsystem' }
+
+  - name: Clone StartDevContainer
+    type: Microsoft.DSC.Transitional/RunCommandOnSet
+    properties:
+      executable: pwsh
+      arguments:
+        - -Command
+        - if (-not (Test-Path 'C:\DEV\start-dev-container')) { git clone 'https://axiansinfoma@dev.azure.com/axiansinfoma/newsystem/_git/start-dev-container' 'C:\DEV\start-dev-container' }
+
+  - name: Clone newsystemPipelines
+    type: Microsoft.DSC.Transitional/RunCommandOnSet
+    properties:
+      executable: pwsh
+      arguments:
+        - -Command
+        - if (-not (Test-Path 'C:\DEV\newsystem-pipelines')) { git clone 'https://axiansinfoma@dev.azure.com/axiansinfoma/newsystem/_git/newsystem-pipelines' 'C:\DEV\newsystem-pipelines' }
+
+  - name: Clone newsystemWiki
+    type: Microsoft.DSC.Transitional/RunCommandOnSet
+    properties:
+      executable: pwsh
+      arguments:
+        - -Command
+        - if (-not (Test-Path 'C:\DEV\newsystem.wiki')) { git clone 'https://axiansinfoma@dev.azure.com/axiansinfoma/newsystem/_git/newsystem.wiki' 'C:\DEV\newsystem.wiki' }
+
+  - name: Clone TelemetryBuddy
+    type: Microsoft.DSC.Transitional/RunCommandOnSet
+    properties:
+      executable: pwsh
+      arguments:
+        - -Command
+        - if (-not (Test-Path 'C:\DEV\Telemetry-Buddy')) { git clone 'https://axiansinfoma@dev.azure.com/axiansinfoma/newsystem/_git/Telemetry-Buddy' 'C:\DEV\Telemetry-Buddy' }
+
+  # BC-Team
+  - name: Clone newsystemPsTools
+    type: Microsoft.DSC.Transitional/RunCommandOnSet
+    properties:
+      executable: pwsh
+      arguments:
+        - -Command
+        - if (-not (Test-Path 'C:\DEV\newsystem_ps_tools')) { git clone 'https://axiansinfoma@dev.azure.com/axiansinfoma/BC-Team/_git/newsystem_ps_tools' 'C:\DEV\newsystem_ps_tools' }
+
+  # RMT
+  - name: Clone PowershellScripts
+    type: Microsoft.DSC.Transitional/RunCommandOnSet
+    properties:
+      executable: pwsh
+      arguments:
+        - -Command
+        - if (-not (Test-Path 'C:\DEV\PowershellScripts')) { git clone 'https://axiansinfoma@dev.azure.com/axiansinfoma/RMT/_git/PowershellScripts' 'C:\DEV\PowershellScripts' }
+
+  - name: Clone RMTGit
+    type: Microsoft.DSC.Transitional/RunCommandOnSet
+    properties:
+      executable: pwsh
+      arguments:
+        - -Command
+        - if (-not (Test-Path 'C:\DEV\RMT-Git')) { git clone 'https://axiansinfoma@dev.azure.com/axiansinfoma/RMT/_git/RMT-Git' 'C:\DEV\RMT-Git' }
+
+  - name: Clone AlrpcUebersicht
+    type: Microsoft.DSC.Transitional/RunCommandOnSet
+    properties:
+      executable: pwsh
+      arguments:
+        - -Command
+        - if (-not (Test-Path 'C:\DEV\AlrpcUebersicht')) { git clone 'https://axiansinfoma@dev.azure.com/axiansinfoma/RMT/_git/AlrpcUebersicht' 'C:\DEV\AlrpcUebersicht' }
+
+  # GitHub
+  - name: Clone BCApps
+    type: Microsoft.DSC.Transitional/RunCommandOnSet
+    properties:
+      executable: pwsh
+      arguments:
+        - -Command
+        - if (-not (Test-Path 'C:\DEV\BCApps')) { git clone 'https://github.com/microsoft/BCApps.git' 'C:\DEV\BCApps' }

@@ -1,0 +1,82 @@
+$schema: https://aka.ms/dsc/schemas/v3/bundled/config/document.json
+
+# Some resources require Administrator privileges (Hyper-V, Group Policy).
+# A restart may be required after enabling Hyper-V.
+
+resources:
+  # Execution Policy
+  - name: ExecutionPolicy RemoteSigned
+    type: Microsoft.DSC.Transitional/RunCommandOnSet
+    properties:
+      executable: pwsh
+      arguments:
+        - -Command
+        - Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser -Force
+
+  # Folders
+  - name: Create Dev Folder
+    type: Microsoft.DSC.Transitional/RunCommandOnSet
+    properties:
+      executable: pwsh
+      arguments:
+        - -Command
+        - if (-not (Test-Path 'C:\DEV')) { New-Item -Path 'C:\DEV' -ItemType Directory -Force }
+
+  - name: Create Installation Folder
+    type: Microsoft.DSC.Transitional/RunCommandOnSet
+    properties:
+      executable: pwsh
+      arguments:
+        - -Command
+        - if (-not (Test-Path 'C:\DEV\_Installation')) { New-Item -Path 'C:\DEV\_Installation' -ItemType Directory -Force }
+
+  - name: Create DevelopmentLicenses Folder
+    type: Microsoft.DSC.Transitional/RunCommandOnSet
+    properties:
+      executable: pwsh
+      arguments:
+        - -Command
+        - if (-not (Test-Path 'C:\DEV\_DevelopmentLicenses')) { New-Item -Path 'C:\DEV\_DevelopmentLicenses' -ItemType Directory -Force }
+
+  # Windows Features (requires Administrator)
+  - name: HyperV
+    type: Microsoft.Windows/OptionalFeature
+    properties:
+      featureName: Microsoft-Hyper-V-All
+      _exist: true
+
+  # Dark Mode
+  - name: DarkMode Apps
+    type: Microsoft.Windows/Registry
+    properties:
+      keyPath: HKCU\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize
+      valueName: AppsUseLightTheme
+      valueData:
+        Integer: 0
+      _exist: true
+
+  - name: DarkMode System
+    type: Microsoft.Windows/Registry
+    properties:
+      keyPath: HKCU\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize
+      valueName: SystemUsesLightTheme
+      valueData:
+        Integer: 0
+      _exist: true
+
+  # Group Policy (requires Administrator)
+  - name: Update Group Policy
+    type: Microsoft.DSC.Transitional/RunCommandOnSet
+    properties:
+      executable: gpupdate.exe
+      arguments:
+        - /force
+
+  # Portal.exe Download (environment-specific, comment out if not needed)
+  # - name: Download Portal Exe
+  #   type: Microsoft.DSC.Transitional/RunCommandOnSet
+  #   properties:
+  #     executable: pwsh
+  #     arguments:
+  #       - -File
+  #       - C:\DEV\skripte\appspace\Get-New-Portal-Exe.ps1

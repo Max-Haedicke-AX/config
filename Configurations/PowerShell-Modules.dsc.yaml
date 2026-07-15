@@ -1,0 +1,18 @@
+$schema: https://aka.ms/dsc/schemas/v3/bundled/config/document.json
+
+resources:
+  - name: PowerShellGet
+    type: Microsoft.PowerShell/PSResource
+    properties:
+      name: PowerShellGet
+      repository: PSGallery
+      scope: CurrentUser
+      _exist: true
+
+  - name: PSReadLine
+    type: Microsoft.PowerShell/PSResource
+    properties:
+      name: PSReadLine
+      repository: PSGallery
+      scope: CurrentUser
+      _exist: true

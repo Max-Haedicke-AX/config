@@ -80,6 +80,21 @@ resources:
       source: winget
       _exist: true
 
+  # .NET Desktop Runtimes
+  - name: DotNetDesktopRuntime8
+    type: Microsoft.WinGet/Package
+    properties:
+      id: Microsoft.DotNet.DesktopRuntime.8
+      source: winget
+      _exist: true
+
+  - name: DotNetDesktopRuntime10
+    type: Microsoft.WinGet/Package
+    properties:
+      id: Microsoft.DotNet.DesktopRuntime.10
+      source: winget
+      _exist: true
+
   # .NET Runtimes
   - name: DotNetRuntime6
     type: Microsoft.WinGet/Package
@@ -146,10 +161,39 @@ resources:
       source: winget
       _exist: true
 
+  - name: SQLServer2025Developer
+    type: Microsoft.WinGet/Package
+    properties:
+      id: Microsoft.SQLServer.2025.Developer
+      source: winget
+      _exist: true
+
+  - name: AzureStorageExplorer
+    type: Microsoft.WinGet/Package
+    properties:
+      id: Microsoft.Azure.StorageExplorer
+      source: winget
+      _exist: true
+
   - name: AzureCLI
     type: Microsoft.WinGet/Package
     properties:
       id: Microsoft.AzureCLI
+      source: winget
+      _exist: true
+
+  # Python
+  - name: Python39
+    type: Microsoft.WinGet/Package
+    properties:
+      id: Python.Python.3.9
+      source: winget
+      _exist: true
+
+  - name: PythonLauncher
+    type: Microsoft.WinGet/Package
+    properties:
+      id: Python.Launcher
       source: winget
       _exist: true
 
@@ -273,7 +317,7 @@ resources:
   - name: ReportBuilder
     type: Microsoft.WinGet/Package
     properties:
-      id: Microsoft.ReportBuilder
+      id: Microsoft.PowerBIReportBuilder
       source: winget
       _exist: true
 
@@ -298,6 +342,27 @@ resources:
       source: winget
       _exist: true
 
+  - name: PDFXChangeEditor
+    type: Microsoft.WinGet/Package
+    properties:
+      id: TrackerSoftware.PDF-XChangeEditor
+      source: winget
+      _exist: true
+
+  - name: VLC
+    type: Microsoft.WinGet/Package
+    properties:
+      id: VideoLAN.VLC
+      source: winget
+      _exist: true
+
+  - name: WSL
+    type: Microsoft.WinGet/Package
+    properties:
+      id: Microsoft.WSL
+      source: winget
+      _exist: true
+
   # Development Analysis Tools
   - name: BeyondCompare
     type: Microsoft.WinGet/Package
@@ -306,7 +371,29 @@ resources:
       source: winget
       _exist: true
 
+  # - name: ILSpy
+  #   type: Microsoft.WinGet/Package
+  #   properties:
+  #     id: icsharpcode.ILSpy
+  #     source: winget
+  #     _exist: true
+
+  # # AI Tools
+  # - name: Ollama
+  #   type: Microsoft.WinGet/Package
+  #   properties:
+  #     id: Ollama.Ollama
+  #     source: winget
+  #     _exist: true
+
   # Security
+  # - name: KeePass
+  #   type: Microsoft.WinGet/Package
+  #   properties:
+  #     id: DominikReichl.KeePass
+  #     source: winget
+  #     _exist: true
+
   - name: KeePassXC
     type: Microsoft.WinGet/Package
     properties:

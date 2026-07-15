@@ -1,0 +1,17 @@
+$schema: https://aka.ms/dsc/schemas/v3/bundled/config/document.json
+
+# Requires Administrator privileges to apply.
+# A restart may be required after set.
+
+resources:
+  - name: WSL
+    type: Microsoft.Windows/OptionalFeature
+    properties:
+      featureName: Microsoft-Windows-Subsystem-Linux
+      _exist: true
+
+  - name: VirtualMachinePlatform
+    type: Microsoft.Windows/OptionalFeature
+    properties:
+      featureName: VirtualMachinePlatform
+      _exist: true
