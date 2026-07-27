@@ -134,6 +134,10 @@ Write-Step 'Updating winget sources...'
 winget source update
 Write-Success 'Winget sources updated.'
 
+# Suppress DSC WARN-level trace output (e.g. runcommandonset idempotency noise).
+# DSC v3 is a Rust binary and respects RUST_LOG for log filtering.
+$env:RUST_LOG = 'error'
+
 $results = [System.Collections.Generic.List[PSCustomObject]]::new()
 
 foreach ($configFile in $DSC_CONFIGS) {
@@ -147,22 +151,24 @@ foreach ($configFile in $DSC_CONFIGS) {
     }
 
     try {
-        # Redirect stderr to temp file to avoid ErrorRecord objects triggering $ErrorActionPreference = Stop
-        $tempStderr = [System.IO.Path]::GetTempFileName()
-        $stdoutLines = dsc config set --file $configPath --output-format json 2>$tempStderr
-        $stderrLines = if (Test-Path $tempStderr) { Get-Content $tempStderr } else { @() }
-        Remove-Item $tempStderr -Force -ErrorAction SilentlyContinue
+        # Use Continue locally so DSC stderr never triggers $ErrorActionPreference = Stop.
+        # RUST_LOG=error means only real errors reach stderr at all.
+        $prevPref = $ErrorActionPreference
+        $ErrorActionPreference = 'Continue'
+        $rawOutput = dsc config set --file $configPath --output-format json 2>&1
+        $ErrorActionPreference = $prevPref
 
-        # Show only real ERROR lines — suppress WARN idempotency noise
+        # Split stream: ErrorRecord = stderr (DSC errors), string = stdout (JSON)
+        $stderrLines = @($rawOutput | Where-Object { $_ -is [System.Management.Automation.ErrorRecord] } |
+                         ForEach-Object { $_.ToString() })
+        $jsonText    = ($rawOutput | Where-Object { $_ -isnot [System.Management.Automation.ErrorRecord] }) -join ''
+
         foreach ($line in $stderrLines) {
-            if ($line -match ' ERROR ') {
-                Write-Host "    [!] $($line -replace '^\S+\s+ERROR\s+', '')" -ForegroundColor Red
-            }
+            Write-Host "    [!] $line" -ForegroundColor Red
         }
 
         # Parse JSON and display compact summary
         $dscResult = $null
-        $jsonText = $stdoutLines -join ''
         if ($jsonText) {
             $dscResult = $jsonText | ConvertFrom-Json -ErrorAction SilentlyContinue
         }
