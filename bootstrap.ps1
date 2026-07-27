@@ -127,6 +127,13 @@ Write-Success "Config repo ready at $REPO_PATH"
 # ---------------------------------------------------------------------------
 # 5. Apply each DSC configuration
 # ---------------------------------------------------------------------------
+
+# Ensure winget sources are accepted/updated before running WinGet DSC resources.
+# Without this, Microsoft.WinGet/Package fails with 0x8A150014 in a fresh admin session.
+Write-Step 'Updating winget sources...'
+winget source update --accept-source-agreements
+Write-Success 'Winget sources updated.'
+
 $results = [System.Collections.Generic.List[PSCustomObject]]::new()
 
 foreach ($configFile in $DSC_CONFIGS) {
