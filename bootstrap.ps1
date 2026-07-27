@@ -131,7 +131,7 @@ Write-Success "Config repo ready at $REPO_PATH"
 # Ensure winget sources are accepted/updated before running WinGet DSC resources.
 # Without this, Microsoft.WinGet/Package fails with 0x8A150014 in a fresh admin session.
 Write-Step 'Updating winget sources...'
-winget source update --accept-source-agreements
+winget source update
 Write-Success 'Winget sources updated.'
 
 $results = [System.Collections.Generic.List[PSCustomObject]]::new()
@@ -147,17 +147,11 @@ foreach ($configFile in $DSC_CONFIGS) {
     }
 
     try {
-        # Capture stdout (JSON) and stderr (DSC trace) separately
-        $stdoutLines = [System.Collections.Generic.List[string]]::new()
-        $stderrLines = [System.Collections.Generic.List[string]]::new()
-
-        dsc config set --file $configPath --output-format json 2>&1 | ForEach-Object {
-            if ($_ -is [System.Management.Automation.ErrorRecord]) {
-                $stderrLines.Add($_.ToString())
-            } else {
-                $stdoutLines.Add([string]$_)
-            }
-        }
+        # Redirect stderr to temp file to avoid ErrorRecord objects triggering $ErrorActionPreference = Stop
+        $tempStderr = [System.IO.Path]::GetTempFileName()
+        $stdoutLines = dsc config set --file $configPath --output-format json 2>$tempStderr
+        $stderrLines = if (Test-Path $tempStderr) { Get-Content $tempStderr } else { @() }
+        Remove-Item $tempStderr -Force -ErrorAction SilentlyContinue
 
         # Show only real ERROR lines — suppress WARN idempotency noise
         foreach ($line in $stderrLines) {
