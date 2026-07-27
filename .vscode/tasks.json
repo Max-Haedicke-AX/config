@@ -27,10 +27,18 @@
       "id": "dscConfigFile",
       "type": "pickString",
       "description": "Select DSC config file",
-      "default": ".\\Configurations\\Store-Apps.dsc.yaml",
+      "default": ".\\Configurations\\System-Configuration.dsc.yaml",
       "options": [
+        ".\\Configurations\\System-Configuration.dsc.yaml",
+        ".\\Configurations\\WinGet-Apps.dsc.yaml",
+        ".\\Configurations\\GitConfiguration.dsc.yaml",
+        ".\\Configurations\\PowerShell-Modules.dsc.yaml",
+        ".\\Configurations\\WSL-Setup.dsc.yaml",
         ".\\Configurations\\Store-Apps.dsc.yaml",
-        ".\\Configurations\\GitConfiguration.dsc.yaml"
+        ".\\Configurations\\BusinessCentral.dsc.yaml",
+        ".\\Configurations\\AppSpace-Setup.dsc.yaml",
+        ".\\Configurations\\SQLServer2025.dsc.yaml",
+        ".\\Configurations\\Git-Repos.dsc.yaml"
       ]
     }
   ]
