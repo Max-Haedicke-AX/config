@@ -130,7 +130,7 @@ Write-Success "Config repo ready at $REPO_PATH"
 $results = [System.Collections.Generic.List[PSCustomObject]]::new()
 
 foreach ($configFile in $DSC_CONFIGS) {
-    $configPath = Join-Path $REPO_PATH 'Configurations' $configFile
+    $configPath = Join-Path (Join-Path $REPO_PATH 'Configurations') $configFile
     Write-Step "Applying: $configFile"
 
     if (-not (Test-Path $configPath)) {
