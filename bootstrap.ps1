@@ -144,7 +144,7 @@ foreach ($configFile in $DSC_CONFIGS) {
         Write-Success "$configFile applied successfully."
         $results.Add([PSCustomObject]@{ Config = $configFile; Status = 'OK' })
     } catch {
-        Write-Warn "Failed: $configFile — $_"
+        Write-Warn "Failed: $configFile - $_"
         $results.Add([PSCustomObject]@{ Config = $configFile; Status = "Error: $_" })
     }
 }
