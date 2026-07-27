@@ -40,10 +40,12 @@ resources:
 
   # Windows Features (requires Administrator)
   - name: HyperV
-    type: Microsoft.Windows/OptionalFeature
+    type: Microsoft.DSC.Transitional/RunCommandOnSet
     properties:
-      featureName: Microsoft-Hyper-V-All
-      _exist: true
+      executable: pwsh
+      arguments:
+        - -Command
+        - if ((Get-WindowsOptionalFeature -Online -FeatureName Microsoft-Hyper-V-All).State -ne 'Enabled') { Enable-WindowsOptionalFeature -Online -FeatureName Microsoft-Hyper-V-All -All -NoRestart }
 
   # Dark Mode
   - name: DarkMode Apps
