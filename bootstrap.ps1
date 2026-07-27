@@ -142,17 +142,72 @@ foreach ($configFile in $DSC_CONFIGS) {
 
     if (-not (Test-Path $configPath)) {
         Write-Warn "Config file not found, skipping: $configPath"
-        $results.Add([PSCustomObject]@{ Config = $configFile; Status = 'Skipped' })
+        $results.Add([PSCustomObject]@{ Config = $configFile; Status = 'Skipped'; Changed = '-'; Total = '-' })
         continue
     }
 
     try {
-        dsc config set --file $configPath --output-format pretty-json
-        Write-Success "$configFile applied successfully."
-        $results.Add([PSCustomObject]@{ Config = $configFile; Status = 'OK' })
+        # Capture stdout (JSON) and stderr (DSC trace) separately
+        $stdoutLines = [System.Collections.Generic.List[string]]::new()
+        $stderrLines = [System.Collections.Generic.List[string]]::new()
+
+        dsc config set --file $configPath --output-format json 2>&1 | ForEach-Object {
+            if ($_ -is [System.Management.Automation.ErrorRecord]) {
+                $stderrLines.Add($_.ToString())
+            } else {
+                $stdoutLines.Add([string]$_)
+            }
+        }
+
+        # Show only real ERROR lines — suppress WARN idempotency noise
+        foreach ($line in $stderrLines) {
+            if ($line -match ' ERROR ') {
+                Write-Host "    [!] $($line -replace '^\S+\s+ERROR\s+', '')" -ForegroundColor Red
+            }
+        }
+
+        # Parse JSON and display compact summary
+        $dscResult = $null
+        $jsonText = $stdoutLines -join ''
+        if ($jsonText) {
+            $dscResult = $jsonText | ConvertFrom-Json -ErrorAction SilentlyContinue
+        }
+
+        $total   = 0
+        $changed = @()
+        if ($dscResult) {
+            $total   = $dscResult.results.Count
+            $changed = @($dscResult.results | Where-Object { $_.result.changedProperties.Count -gt 0 })
+
+            if ($changed.Count -gt 0) {
+                Write-Host "    Changed ($($changed.Count) of $total):" -ForegroundColor Yellow
+                foreach ($r in $changed) {
+                    Write-Host "      * $($r.name): $($r.result.changedProperties -join ', ')" -ForegroundColor Yellow
+                }
+            } else {
+                Write-Host "    $total/$total already in desired state." -ForegroundColor DarkGray
+            }
+
+            if ($dscResult.hadErrors) {
+                throw 'DSC reported errors (see [!] lines above)'
+            }
+        }
+
+        Write-Success "$configFile applied."
+        $results.Add([PSCustomObject]@{
+            Config  = $configFile
+            Status  = 'OK'
+            Changed = $changed.Count
+            Total   = $total
+        })
     } catch {
         Write-Warn "Failed: $configFile - $_"
-        $results.Add([PSCustomObject]@{ Config = $configFile; Status = "Error: $_" })
+        $results.Add([PSCustomObject]@{
+            Config  = $configFile
+            Status  = "Error: $_"
+            Changed = '?'
+            Total   = '?'
+        })
     }
 }
 
@@ -162,13 +217,13 @@ foreach ($configFile in $DSC_CONFIGS) {
 Write-Host "`n========================================" -ForegroundColor Cyan
 Write-Host '  Bootstrap Summary' -ForegroundColor Cyan
 Write-Host "========================================`n" -ForegroundColor Cyan
-$results | Format-Table -AutoSize
+$results | Format-Table Config, Status, Changed, Total -AutoSize
 
 $errors = $results | Where-Object { $_.Status -like 'Error*' }
 if ($errors) {
     Write-Host "`nSome configurations failed. Check the output above." -ForegroundColor Yellow
-    # exit 1
+    exit 1
 } else {
     Write-Host 'All configurations applied successfully!' -ForegroundColor Green
-    # exit 0
+    exit 0
 }
