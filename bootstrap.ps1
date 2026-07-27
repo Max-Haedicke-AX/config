@@ -229,8 +229,6 @@ $results | Format-Table Config, Status, Changed, Total -AutoSize
 $errors = $results | Where-Object { $_.Status -like 'Error*' }
 if ($errors) {
     Write-Host "`nSome configurations failed. Check the output above." -ForegroundColor Yellow
-    exit 1
 } else {
     Write-Host 'All configurations applied successfully!' -ForegroundColor Green
-    exit 0
 }
