@@ -163,8 +163,11 @@ foreach ($configFile in $DSC_CONFIGS) {
                          ForEach-Object { $_.ToString() })
         $jsonText    = ($rawOutput | Where-Object { $_ -isnot [System.Management.Automation.ErrorRecord] }) -join ''
 
+        # Only show real ERRORs — WARN lines (e.g. idempotency) are filtered out
         foreach ($line in $stderrLines) {
-            Write-Host "    [!] $line" -ForegroundColor Red
+            if ($line -match '\bERROR\b') {
+                Write-Host "    [!] $($line -replace '^\S+\s+ERROR\s+', '')" -ForegroundColor Red
+            }
         }
 
         # Parse JSON and display compact summary
@@ -177,7 +180,11 @@ foreach ($configFile in $DSC_CONFIGS) {
         $changed = @()
         if ($dscResult) {
             $total   = $dscResult.results.Count
-            $changed = @($dscResult.results | Where-Object { $_.result.changedProperties.Count -gt 0 })
+            # PS 5.1 ConvertFrom-Json deserializes [] as $null, so guard before .Count
+            $changed = @($dscResult.results | Where-Object {
+                $cp = $_.result.changedProperties
+                $null -ne $cp -and $cp.Count -gt 0
+            })
 
             if ($changed.Count -gt 0) {
                 Write-Host "    Changed ($($changed.Count) of $total):" -ForegroundColor Yellow
