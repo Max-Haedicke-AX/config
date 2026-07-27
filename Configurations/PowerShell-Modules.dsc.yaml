@@ -2,17 +2,17 @@ $schema: https://aka.ms/dsc/schemas/v3/bundled/config/document.json
 
 resources:
   - name: PowerShellGet
-    type: Microsoft.PowerShell/PSResource
+    type: Microsoft.DSC.Transitional/RunCommandOnSet
     properties:
-      name: PowerShellGet
-      repository: PSGallery
-      scope: CurrentUser
-      _exist: true
+      executable: pwsh
+      arguments:
+        - -Command
+        - if (-not (Get-Module -ListAvailable -Name PowerShellGet)) { Install-Module -Name PowerShellGet -Repository PSGallery -Scope CurrentUser -Force -AllowClobber }
 
   - name: PSReadLine
-    type: Microsoft.PowerShell/PSResource
+    type: Microsoft.DSC.Transitional/RunCommandOnSet
     properties:
-      name: PSReadLine
-      repository: PSGallery
-      scope: CurrentUser
-      _exist: true
+      executable: pwsh
+      arguments:
+        - -Command
+        - if (-not (Get-Module -ListAvailable -Name PSReadLine)) { Install-Module -Name PSReadLine -Repository PSGallery -Scope CurrentUser -Force -AllowClobber }

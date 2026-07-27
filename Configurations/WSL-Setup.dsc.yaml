@@ -5,13 +5,17 @@ $schema: https://aka.ms/dsc/schemas/v3/bundled/config/document.json
 
 resources:
   - name: WSL
-    type: Microsoft.Windows/OptionalFeature
+    type: Microsoft.DSC.Transitional/RunCommandOnSet
     properties:
-      featureName: Microsoft-Windows-Subsystem-Linux
-      _exist: true
+      executable: pwsh
+      arguments:
+        - -Command
+        - if ((Get-WindowsOptionalFeature -Online -FeatureName Microsoft-Windows-Subsystem-Linux).State -ne 'Enabled') { Enable-WindowsOptionalFeature -Online -FeatureName Microsoft-Windows-Subsystem-Linux -NoRestart }
 
   - name: VirtualMachinePlatform
-    type: Microsoft.Windows/OptionalFeature
+    type: Microsoft.DSC.Transitional/RunCommandOnSet
     properties:
-      featureName: VirtualMachinePlatform
-      _exist: true
+      executable: pwsh
+      arguments:
+        - -Command
+        - if ((Get-WindowsOptionalFeature -Online -FeatureName VirtualMachinePlatform).State -ne 'Enabled') { Enable-WindowsOptionalFeature -Online -FeatureName VirtualMachinePlatform -NoRestart }
