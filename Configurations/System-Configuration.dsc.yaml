@@ -54,7 +54,7 @@ resources:
       keyPath: HKCU\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize
       valueName: AppsUseLightTheme
       valueData:
-        Integer: 0
+        DWord: 0
       _exist: true
 
   - name: DarkMode System
@@ -63,7 +63,7 @@ resources:
       keyPath: HKCU\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize
       valueName: SystemUsesLightTheme
       valueData:
-        Integer: 0
+        DWord: 0
       _exist: true
 
   # Group Policy (requires Administrator)
