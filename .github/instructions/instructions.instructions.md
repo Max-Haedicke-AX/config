@@ -18,6 +18,17 @@ Load these instructions when a task includes one of the following:
 - Prefer one-file configs per topic under `Configurations/`.
 - Keep resource names explicit and stable (for example `InstallGit`, `LenovoVantage`).
 
+## Adding a new DSC configuration file
+When creating a new `Configurations/*.dsc.yaml`, always also update these two files:
+1. **`bootstrap.ps1`** — add the filename to `$DSC_CONFIGS` in the correct execution order (System first, Git-Repos last).
+2. **`.vscode/tasks.json`** — add the path to the `options` array of the `dscConfigFile` pickString input.
+
+Current execution order in `bootstrap.ps1`:
+```
+System-Configuration → WinGet-Apps → GitConfiguration → PowerShell-Modules
+→ VSCode-Setup → Git-Repos → WSL-Setup → Store-Apps → AppSpace-Setup
+```
+
 ## WinGet resource rules
 - Use `Microsoft.WinGet/Package` for package/app installation.
 - Use `_exist: true` instead of `ensure: Present`.

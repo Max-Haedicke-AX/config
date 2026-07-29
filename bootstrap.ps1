@@ -31,6 +31,7 @@ $DSC_CONFIGS = @(
     'WinGet-Apps.dsc.yaml',
     'GitConfiguration.dsc.yaml',
     'PowerShell-Modules.dsc.yaml',
+    'VSCode-Setup.dsc.yaml',
     'Git-Repos.dsc.yaml',
     'WSL-Setup.dsc.yaml',
     'Store-Apps.dsc.yaml',

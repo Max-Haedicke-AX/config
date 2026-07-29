@@ -1,0 +1,103 @@
+$schema: https://aka.ms/dsc/schemas/v3/bundled/config/document.json
+
+# VS Code Installation & Extension Setup
+# NOTE: VS Code itself is also part of WinGet-Apps.dsc.yaml.
+#       This file handles the full VS Code setup including all extensions.
+#
+# SIGN-IN NOTE:
+#   Automated sign-in for Microsoft Account, GitHub, or GitHub Copilot is NOT
+#   possible via DSC. These require an interactive browser-based OAuth flow.
+#   Run VS Code manually after setup and sign in via:
+#     - File > Preferences > Accounts (Microsoft / GitHub)
+#     - Extensions view > GitHub Copilot > Sign in
+
+resources:
+  # ---------------------------------------------------------------------------
+  # 1. Install VS Code via WinGet
+  # ---------------------------------------------------------------------------
+  - name: VSCode
+    type: Microsoft.WinGet/Package
+    properties:
+      id: Microsoft.VisualStudioCode
+      source: winget
+      _exist: true
+
+  # ---------------------------------------------------------------------------
+  # 2. Install VS Code Extensions
+  #    Uses a single idempotent script — code --install-extension is safe to
+  #    re-run; already installed extensions are skipped automatically.
+  # ---------------------------------------------------------------------------
+  - name: VSCode Extensions
+    type: Microsoft.DSC.Transitional/RunCommandOnSet
+    dependsOn:
+      - "[resourceId('Microsoft.WinGet/Package','VSCode')]"
+    properties:
+      executable: pwsh
+      arguments:
+        - -Command
+        - |
+          $extensions = @(
+            'aaron-bond.better-comments',
+            'andrzejzwierzchowski.al-code-outline',
+            'ankitbko.vscode-pull-request-azdo',
+            'bierner.markdown-mermaid',
+            'bioinfo.markitdown-vscode',
+            'christian-kohler.npm-intellisense',
+            'davidanson.vscode-markdownlint',
+            'davidfeldhoff.al-codeactions',
+            'docker.docker',
+            'donjayamanne.githistory',
+            'eamodio.gitlens',
+            'editorconfig.editorconfig',
+            'esbenp.prettier-vscode',
+            'fanaticpythoner.better-todo-tree',
+            'formulahendry.auto-rename-tag',
+            'formulahendry.dotnet-test-explorer',
+            'heaths.vscode-guid',
+            'immanueltikhonov.droast',
+            'inferrinizzard.prettier-sql-vscode',
+            'jeremycaron.csharp-organize-usings',
+            'jeremyvyska.bc-code-intelligence',
+            'k--kato.docomment',
+            'maattdd.gitless',
+            'ms-azuretools.vscode-azure-github-copilot',
+            'ms-azuretools.vscode-azure-mcp-server',
+            'ms-azuretools.vscode-azurefunctions',
+            'ms-azuretools.vscode-azureresourcegroups',
+            'ms-azuretools.vscode-containers',
+            'ms-azuretools.vscode-docker',
+            'ms-dotnettools.csdevkit',
+            'ms-dotnettools.csharp',
+            'ms-dotnettools.vscode-dotnet-runtime',
+            'ms-dynamics-smb.al',
+            'ms-kubernetes-tools.vscode-kubernetes-tools',
+            'ms-playwright.playwright',
+            'ms-vscode-remote.remote-containers',
+            'ms-vscode-remote.remote-ssh',
+            'ms-vscode-remote.remote-ssh-edit',
+            'ms-vscode-remote.remote-wsl',
+            'ms-vscode.cpptools',
+            'ms-vscode.powershell',
+            'ms-vscode.remote-explorer',
+            'ollama.ollama',
+            'postman.postman-for-vscode',
+            'qwtel.sqlite-viewer',
+            'recent-graduates.ralph-runner',
+            'redhat.vscode-xml',
+            'redhat.vscode-yaml',
+            'stefanmaron.businesscentral-lintercop',
+            'streetsidesoftware.code-spell-checker',
+            'streetsidesoftware.code-spell-checker-german',
+            'tailscale.vscode-tailscale',
+            'tomoki1207.pdf',
+            'uctakeoff.vscode-counter',
+            'usernamehw.errorlens',
+            'vscode-icons-team.vscode-icons',
+            'waldo.crs-al-language-extension',
+            'waldobc.bc-telemetry-buddy',
+            'yzane.markdown-pdf'
+          )
+          foreach ($ext in $extensions) {
+            Write-Host "Installing extension: $ext"
+            code --install-extension $ext --force
+          }
