@@ -1,0 +1,52 @@
+$schema: https://aka.ms/dsc/schemas/v3/bundled/config/document.json
+
+# Git repository fetch - Scheduled Task
+#
+# Registers a Windows Scheduled Task that fetches all Git repositories directly
+# below C:\DEV twice per day during the user's interactive session.
+#
+# Usage:
+#   dsc config set --file Configurations\GitFetch-Task.dsc.yaml
+
+parameters:
+
+  RepositoryRoot:
+    type: string
+    defaultValue: C:\DEV
+    description: Root directory containing the Git repositories.
+
+  FetchScriptPath:
+    type: string
+    defaultValue: C:\DEV\config\Configurations\Scripts\Git-FetchAllRepos.ps1
+    description: Path to the PowerShell script executed by the scheduled task.
+
+  TaskName:
+    type: string
+    defaultValue: GitFetchAllRepos
+    description: Name of the Windows Scheduled Task.
+
+resources:
+
+  - name: RegisterGitFetchTask
+    type: Microsoft.DSC.Transitional/RunCommandOnSet
+    properties:
+      executable: pwsh
+      arguments:
+        - -NonInteractive
+        - -Command
+        - >-
+          [concat(
+            '$ErrorActionPreference = ''Stop'';',
+            '$taskName = "', parameters('TaskName'), '";',
+            '$repositoryRoot = "', parameters('RepositoryRoot'), '";',
+            '$scriptPath = "', parameters('FetchScriptPath'), '";',
+            'if (-not (Test-Path -LiteralPath $scriptPath -PathType Leaf)) { throw "Fetch script not found: $scriptPath" };',
+            '$action = New-ScheduledTaskAction -Execute "powershell.exe" -Argument (''-NoProfile -NonInteractive -ExecutionPolicy Bypass -File "'' + $scriptPath + ''" -RepositoryRoot "'' + $repositoryRoot + ''"'');',
+            '$morningTrigger = New-ScheduledTaskTrigger -Daily -At (Get-Date -Hour 8 -Minute 0 -Second 0);',
+            '$noonTrigger = New-ScheduledTaskTrigger -Daily -At (Get-Date -Hour 12 -Minute 0 -Second 0);',
+            '$trigger = @($morningTrigger, $noonTrigger);',
+            '$settings = New-ScheduledTaskSettingsSet -StartWhenAvailable -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -MultipleInstances IgnoreNew;',
+            '$principal = New-ScheduledTaskPrincipal -UserId "$env:USERDOMAIN\$env:USERNAME" -LogonType Interactive -RunLevel Limited;',
+            'Register-ScheduledTask -TaskName $taskName -Action $action -Trigger $trigger -Settings $settings -Principal $principal -Description "Fetches all Git repositories in C:\DEV at 08:00 and 12:00" -Force | Out-Null;',
+            'Write-Host "[OK] Scheduled task ''$taskName'' registered (daily at 08:00 and 12:00)"'
+          )]

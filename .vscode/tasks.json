@@ -41,7 +41,8 @@
         ".\\Configurations\\Git-Repos.dsc.yaml",
         ".\\Configurations\\VSCode-Setup.dsc.yaml",
         ".\\Configurations\\BCLicenseSync-Task.dsc.yaml",
-        ".\\Configurations\\BackupSQL-Task.dsc.yaml"
+        ".\\Configurations\\BackupSQL-Task.dsc.yaml",
+        ".\\Configurations\\GitFetch-Task.dsc.yaml"
       ]
     }
   ]
