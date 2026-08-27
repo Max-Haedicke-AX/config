@@ -72,8 +72,12 @@ try {
     # Update remote-tracking refs and prune deleted remote branches.
     # This is what turns merged/deleted remote branches into "[gone]".
     Write-Host "Fetching from remote (git fetch --prune)..." -ForegroundColor Gray
+    $fetchErrorActionPreference = $ErrorActionPreference
+    $ErrorActionPreference = 'Continue'
     git fetch --prune 2>$null | Out-Null
-    if ($LASTEXITCODE -ne 0) {
+    $fetchExitCode = $LASTEXITCODE
+    $ErrorActionPreference = $fetchErrorActionPreference
+    if ($fetchExitCode -ne 0) {
         Write-Warning "Could not fetch from remote. Results may be stale."
     }
 
