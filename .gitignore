@@ -1,2 +1,1 @@
-# Runtime logs written by scheduled tasks (see Configurations\*-Task.dsc.yaml LogPath)
-Logs/
+# See Logs/.gitignore for how runtime task logs are handled.
