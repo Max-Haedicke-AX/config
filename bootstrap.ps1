@@ -35,7 +35,9 @@ $DSC_CONFIGS = @(
     'Git-Repos.dsc.yaml',
     'WSL-Setup.dsc.yaml',
     'Store-Apps.dsc.yaml',
-    'AppSpace-Setup.dsc.yaml'
+    'AppSpace-Setup.dsc.yaml',
+    'BCLicenseSync-Task.dsc.yaml',
+    'BackupSQL-Task.dsc.yaml'
 )
 
 # ---------------------------------------------------------------------------

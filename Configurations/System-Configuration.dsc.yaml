@@ -82,12 +82,3 @@ resources:
       executable: gpupdate.exe
       arguments:
         - /force
-
-  # Portal.exe Download (environment-specific, comment out if not needed)
-  # - name: Download Portal Exe
-  #   type: Microsoft.DSC.Transitional/RunCommandOnSet
-  #   properties:
-  #     executable: pwsh
-  #     arguments:
-  #       - -File
-  #       - C:\DEV\skripte\appspace\Get-New-Portal-Exe.ps1

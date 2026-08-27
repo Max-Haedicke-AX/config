@@ -1,0 +1,68 @@
+$schema: https://aka.ms/dsc/schemas/v3/bundled/config/document.json
+
+# BC Development License Sync — Scheduled Task
+#
+# Registers a Windows Scheduled Task that runs every Monday and Thursday at 08:00.
+# The task checks whether the network license share is reachable and, if so,
+# copies the *.bclicense files to a local folder for offline use.
+#
+# Usage:
+#   dsc config set --file Configurations\BCLicenseSync-Task.dsc.yaml
+
+parameters:
+
+  NetworkLicensePath:
+    type: string
+    defaultValue: \\S-1564-INFDRIVE\Business Central\DevelopmentLicenses
+    description: UNC path to the folder containing *.bclicense development license files.
+
+  LocalLicensePath:
+    type: string
+    defaultValue: C:\DEV\_DevelopmentLicenses
+    description: Local directory the license files are copied into.
+
+  SyncScriptPath:
+    type: string
+    defaultValue: C:\DEV\config\Configurations\Scripts\Sync-BCLicenses.ps1
+    description: Path to the PowerShell script executed by the scheduled task.
+
+  TaskName:
+    type: string
+    defaultValue: BC-LicenseSync
+    description: Name of the Windows Scheduled Task.
+
+resources:
+
+  - name: CreateLocalLicenseDir
+    type: Microsoft.DSC.Transitional/RunCommandOnSet
+    properties:
+      executable: pwsh
+      arguments:
+        - -NonInteractive
+        - -Command
+        - "[concat('New-Item -ItemType Directory -Force -Path \"', parameters('LocalLicensePath'), '\" | Out-Null')]"
+
+  - name: RegisterBCLicenseSyncTask
+    type: Microsoft.DSC.Transitional/RunCommandOnSet
+    dependsOn:
+      - "[resourceId('Microsoft.DSC.Transitional/RunCommandOnSet','CreateLocalLicenseDir')]"
+    properties:
+      executable: pwsh
+      arguments:
+        - -NonInteractive
+        - -Command
+        - >-
+          [concat(
+            '$taskName = "', parameters('TaskName'), '";',
+            '$scriptPath = "', parameters('SyncScriptPath'), '";',
+            '$netPath = "', parameters('NetworkLicensePath'), '";',
+            '$localPath = "', parameters('LocalLicensePath'), '";',
+            '$action = New-ScheduledTaskAction -Execute "pwsh.exe" -Argument (',
+            '  ''-NonInteractive -ExecutionPolicy Bypass -File "'' + $scriptPath + ''" -NetworkLicensePath "'' + $netPath + ''" -LocalLicensePath "'' + $localPath + ''"''',
+            ');',
+            '$trigger = New-ScheduledTaskTrigger -Weekly -DaysOfWeek Monday,Thursday -At 08:00;',
+            '$settings = New-ScheduledTaskSettingsSet -StartWhenAvailable -DontStopOnIdleEnd -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries;',
+            '$principal = New-ScheduledTaskPrincipal -UserId "$env:USERDOMAIN\$env:USERNAME" -LogonType Interactive -RunLevel Limited;',
+            'Register-ScheduledTask -TaskName $taskName -Action $action -Trigger $trigger -Settings $settings -Principal $principal -Description "Syncs BC development licenses from network share to local disk" -Force | Out-Null;',
+            'Write-Host "[OK] Scheduled task ''$taskName'' registered (Mon+Thu 08:00)"'
+          )]

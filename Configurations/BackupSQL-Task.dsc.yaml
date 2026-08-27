@@ -1,0 +1,51 @@
+$schema: https://aka.ms/dsc/schemas/v3/bundled/config/document.json
+
+# SQL database backup - Scheduled Task
+#
+# Registers a Windows Scheduled Task that runs the backup script once per day.
+# The task uses the current interactive user so Windows authentication and the
+# user's SqlServer PowerShell module are available to the backup script.
+#
+# Usage:
+#   dsc config set --file Configurations\BackupSQL-Task.dsc.yaml
+
+parameters:
+
+  BackupScriptPath:
+    type: string
+    defaultValue: C:\DEV\config\Configurations\Scripts\Backup-SqlDatabases.ps1
+    description: Path to the PowerShell backup script.
+
+  TaskName:
+    type: string
+    defaultValue: Backup SQL
+    description: Name of the Windows Scheduled Task.
+
+  RunTime:
+    type: string
+    defaultValue: '09:00'
+    description: Daily start time in 24-hour HH:mm format.
+
+resources:
+
+  - name: RegisterBackupSQLTask
+    type: Microsoft.DSC.Transitional/RunCommandOnSet
+    properties:
+      executable: pwsh
+      arguments:
+        - -NonInteractive
+        - -Command
+        - >-
+          [concat(
+            '$ErrorActionPreference = ''Stop'';',
+            '$taskName = "', parameters('TaskName'), '";',
+            '$scriptPath = "', parameters('BackupScriptPath'), '";',
+            '$runAt = [datetime]::ParseExact("', parameters('RunTime'), '", ''HH:mm'', $null);',
+            'if (-not (Test-Path -LiteralPath $scriptPath -PathType Leaf)) { throw "Backup script not found: $scriptPath" };',
+            '$action = New-ScheduledTaskAction -Execute "powershell.exe" -Argument (''-NoProfile -NonInteractive -ExecutionPolicy Bypass -File "'' + $scriptPath + ''"'');',
+            '$trigger = New-ScheduledTaskTrigger -Daily -At $runAt;',
+            '$settings = New-ScheduledTaskSettingsSet -StartWhenAvailable -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -MultipleInstances IgnoreNew -ExecutionTimeLimit (New-TimeSpan -Hours 72);',
+            '$principal = New-ScheduledTaskPrincipal -UserId "$env:USERDOMAIN\$env:USERNAME" -LogonType Interactive -RunLevel Limited;',
+            'Register-ScheduledTask -TaskName $taskName -Action $action -Trigger $trigger -Settings $settings -Principal $principal -Description "Runs the SQL database backup script" -Force | Out-Null;',
+            'Write-Host "[OK] Scheduled task ''$taskName'' registered (daily at ', parameters('RunTime'), ')"'
+          )]

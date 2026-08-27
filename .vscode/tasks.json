@@ -39,7 +39,9 @@
         ".\\Configurations\\AppSpace-Setup.dsc.yaml",
         ".\\Configurations\\SQLServer2025.dsc.yaml",
         ".\\Configurations\\Git-Repos.dsc.yaml",
-        ".\\Configurations\\VSCode-Setup.dsc.yaml"
+        ".\\Configurations\\VSCode-Setup.dsc.yaml",
+        ".\\Configurations\\BCLicenseSync-Task.dsc.yaml",
+        ".\\Configurations\\BackupSQL-Task.dsc.yaml"
       ]
     }
   ]
