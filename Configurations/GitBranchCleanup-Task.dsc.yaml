@@ -1,0 +1,53 @@
+$schema: https://aka.ms/dsc/schemas/v3/bundled/config/document.json
+
+# Git merged-branch cleanup - Scheduled Task
+#
+# Registers a Windows Scheduled Task that deletes local Git branches whose
+# remote branch was merged and deleted, across every repository under
+# -Root. Runs Mondays and Thursdays at 12:00. Locking the screen does not
+# stop the task (lock is not the same as logoff), so it keeps running in
+# the background as long as the user stays logged on.
+#
+# Usage:
+#   dsc config set --file Configurations\GitBranchCleanup-Task.dsc.yaml
+
+parameters:
+
+  RepositoryRoot:
+    type: string
+    defaultValue: C:\DEV
+    description: Root directory containing the Git repositories.
+
+  CleanupScriptPath:
+    type: string
+    defaultValue: C:\DEV\config\Configurations\Scripts\Remove-MergedBranchesInAllRepos.ps1
+    description: Path to the PowerShell script executed by the scheduled task.
+
+  TaskName:
+    type: string
+    defaultValue: GitBranchCleanup
+    description: Name of the Windows Scheduled Task.
+
+resources:
+
+  - name: RegisterGitBranchCleanupTask
+    type: Microsoft.DSC.Transitional/RunCommandOnSet
+    properties:
+      executable: pwsh
+      arguments:
+        - -NonInteractive
+        - -Command
+        - >-
+          [concat(
+            '$ErrorActionPreference = ''Stop'';',
+            '$taskName = "', parameters('TaskName'), '";',
+            '$repositoryRoot = "', parameters('RepositoryRoot'), '";',
+            '$scriptPath = "', parameters('CleanupScriptPath'), '";',
+            'if (-not (Test-Path -LiteralPath $scriptPath -PathType Leaf)) { throw "Cleanup script not found: $scriptPath" };',
+            '$action = New-ScheduledTaskAction -Execute "powershell.exe" -Argument (''-NoProfile -NonInteractive -ExecutionPolicy Bypass -File "'' + $scriptPath + ''" -Root "'' + $repositoryRoot + ''" -Yes'');',
+            '$trigger = New-ScheduledTaskTrigger -Weekly -DaysOfWeek Monday,Thursday -At (Get-Date -Hour 12 -Minute 0 -Second 0);',
+            '$settings = New-ScheduledTaskSettingsSet -StartWhenAvailable -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -MultipleInstances IgnoreNew -ExecutionTimeLimit (New-TimeSpan -Hours 1);',
+            '$principal = New-ScheduledTaskPrincipal -UserId "$env:USERDOMAIN\$env:USERNAME" -LogonType Interactive -RunLevel Limited;',
+            'Register-ScheduledTask -TaskName $taskName -Action $action -Trigger $trigger -Settings $settings -Principal $principal -Description "Deletes local Git branches whose remote was merged/deleted, Mondays and Thursdays at 12:00" -Force | Out-Null;',
+            'Write-Host "[OK] Scheduled task ''$taskName'' registered (Mondays and Thursdays at 12:00)"'
+          )]

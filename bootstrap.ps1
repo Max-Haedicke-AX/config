@@ -38,7 +38,8 @@ $DSC_CONFIGS = @(
     'AppSpace-Setup.dsc.yaml',
     'BCLicenseSync-Task.dsc.yaml',
     'BackupSQL-Task.dsc.yaml',
-    'GitFetch-Task.dsc.yaml'
+    'GitFetch-Task.dsc.yaml',
+    'GitBranchCleanup-Task.dsc.yaml'
 )
 
 # ---------------------------------------------------------------------------
