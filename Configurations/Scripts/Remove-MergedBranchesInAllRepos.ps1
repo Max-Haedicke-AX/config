@@ -32,6 +32,7 @@
 #>
 param(
     [string]$Root = 'C:\DEV',
+    [string]$LogPath,
     [switch]$WhatIf,
     [switch]$Force,
     [switch]$IncludeNeverPushed,
@@ -39,6 +40,12 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
+
+# PowerShell 7.3+ turns any non-zero native-command exit into a terminating error
+# when ErrorActionPreference is 'Stop'. Git writes progress to stderr and returns
+# non-zero for expected conditions (dead remote, unmerged branch), so disable this
+# and rely on explicit $LASTEXITCODE checks instead.
+$PSNativeCommandUseErrorActionPreference = $false
 
 $cleanupScript = Join-Path $PSScriptRoot 'Remove-MergedBranches.ps1'
 if (-not (Test-Path $cleanupScript)) {
@@ -53,12 +60,26 @@ if (-not (Test-Path $Root)) {
 
 Write-Host "Scanning for Git repositories under $Root ..." -ForegroundColor Cyan
 
-# Find all .git directories, then keep only top-level repos (skip nested repos/submodules).
-$gitDirs = Get-ChildItem -Path $Root -Directory -Recurse -Force -Filter '.git' -ErrorAction SilentlyContinue
+$transcriptStarted = $false
+if ($LogPath) {
+    $logDirectory = Split-Path -Parent $LogPath
+    New-Item -ItemType Directory -Path $logDirectory -Force | Out-Null
+    Start-Transcript -Path $LogPath -Append | Out-Null
+    $transcriptStarted = $true
+}
+
+# Find .git directories and files, then keep only top-level repos.
+$gitEntries = Get-ChildItem -Path $Root -Recurse -Force -ErrorAction SilentlyContinue |
+    Where-Object { $_.Name -eq '.git' } |
+    Sort-Object { $_.FullName.Length }
 
 $repos = @()
-foreach ($gitDir in $gitDirs) {
-    $repoPath = $gitDir.Parent.FullName
+foreach ($gitEntry in $gitEntries) {
+    $repoPath = if ($gitEntry.PSIsContainer) {
+        $gitEntry.Parent.FullName
+    } else {
+        $gitEntry.Directory.FullName
+    }
 
     # Skip if this repo lives inside an already-found repo (nested/submodule).
     $isNested = $repos | Where-Object { $repoPath.StartsWith($_ + [IO.Path]::DirectorySeparatorChar, [StringComparison]::OrdinalIgnoreCase) }
@@ -97,3 +118,7 @@ foreach ($repo in $repos) {
 
 Write-Host ("=" * 70) -ForegroundColor DarkCyan
 Write-Host "All done. Repositories processed: $processed, Errored: $errored" -ForegroundColor Cyan
+
+if ($transcriptStarted) {
+    Stop-Transcript | Out-Null
+}
