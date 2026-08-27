@@ -1,0 +1,72 @@
+$schema: https://aka.ms/dsc/schemas/v3/bundled/config/document.json
+
+# SITE client connection settings
+#
+# Creates or updates the SITE client configuration so the client uses the
+# current internal server address.
+#
+# Usage:
+#   dsc config set --file Configurations\SITE-ClientUserSettings.dsc.yaml
+
+parameters:
+
+  SettingsPath:
+    type: string
+    defaultValue: C:\ProgramData\SITE\ClientUserSettings.config
+    description: Path to the SITE client user settings file.
+
+  ServerUrl:
+    type: string
+    defaultValue: s00-infsite:7146/site
+    description: Server address used by the SITE client.
+
+resources:
+
+  - name: EnsureSITEClientUserSettings
+    type: Microsoft.DSC.Transitional/RunCommandOnSet
+    properties:
+      executable: pwsh
+      arguments:
+        - -NonInteractive
+        - -Command
+        - >-
+          [concat(
+            '$ErrorActionPreference = ''Stop'';',
+            '$settingsPath = "', parameters('SettingsPath'), '";',
+            '$serverUrl = "', parameters('ServerUrl'), '";',
+            '$serverUriParts = $serverUrl -split ''/'', 2;',
+            '$serverHostAndPort = $serverUriParts[0];',
+            '$serverHost = $serverHostAndPort -replace '':\d+$'', '''';',
+            '$serverPort = if ($serverHostAndPort -match '':(\d+)$'') { $Matches[1] } else { ''7146'' };',
+            '$serverInstance = if ($serverUriParts.Count -gt 1 -and $serverUriParts[1]) { $serverUriParts[1] } else { ''site'' };',
+            '$settingsDirectory = Split-Path -Parent $settingsPath;',
+            'New-Item -ItemType Directory -Path $settingsDirectory -Force | Out-Null;',
+            'if (Test-Path -LiteralPath $settingsPath -PathType Leaf) {',
+            '  [xml]$settings = Get-Content -LiteralPath $settingsPath -Raw;',
+            '  $appSettings = $settings.SelectSingleNode(''//appSettings'');',
+            '  if ($null -eq $appSettings) { $appSettings = $settings.CreateElement(''appSettings''); $settings.DocumentElement.AppendChild($appSettings) | Out-Null };',
+            '  $serverSetting = $settings.SelectSingleNode(''//add[translate(@key, "ABCDEFGHIJKLMNOPQRSTUVWXYZ", "abcdefghijklmnopqrstuvwxyz") = "server"]'');',
+            '  if ($null -eq $serverSetting) { $serverSetting = $settings.CreateElement(''add''); $serverSetting.SetAttribute(''key'', ''Server''); $appSettings.AppendChild($serverSetting) | Out-Null };',
+            '  $serverSetting.SetAttribute(''value'', $serverHost);',
+            '  $portSetting = $settings.SelectSingleNode(''//add[translate(@key, "ABCDEFGHIJKLMNOPQRSTUVWXYZ", "abcdefghijklmnopqrstuvwxyz") = "clientservicesport"]'');',
+            '  if ($null -eq $portSetting) { $portSetting = $settings.CreateElement(''add''); $portSetting.SetAttribute(''key'', ''ClientServicesPort''); $appSettings.AppendChild($portSetting) | Out-Null };',
+            '  $portSetting.SetAttribute(''value'', $serverPort);',
+            '  $instanceSetting = $settings.SelectSingleNode(''//add[translate(@key, "ABCDEFGHIJKLMNOPQRSTUVWXYZ", "abcdefghijklmnopqrstuvwxyz") = "serverinstance"]'');',
+            '  if ($null -eq $instanceSetting) { $instanceSetting = $settings.CreateElement(''add''); $instanceSetting.SetAttribute(''key'', ''ServerInstance''); $appSettings.AppendChild($instanceSetting) | Out-Null };',
+            '  $instanceSetting.SetAttribute(''value'', $serverInstance);',
+            '  $historySetting = $settings.SelectSingleNode(''//add[translate(@key, "ABCDEFGHIJKLMNOPQRSTUVWXYZ", "abcdefghijklmnopqrstuvwxyz") = "urlhistory"]'');',
+            '  if ($null -eq $historySetting) { $historySetting = $settings.CreateElement(''add''); $historySetting.SetAttribute(''key'', ''UrlHistory''); $appSettings.AppendChild($historySetting) | Out-Null };',
+            '  $historySetting.SetAttribute(''value'', $serverUrl);',
+            '} else {',
+            '  $settings = New-Object System.Xml.XmlDocument;',
+            '  $declaration = $settings.CreateXmlDeclaration(''1.0'', ''utf-8'', $null); $settings.AppendChild($declaration) | Out-Null;',
+            '  $configuration = $settings.CreateElement(''configuration''); $settings.AppendChild($configuration) | Out-Null;',
+            '  $appSettings = $settings.CreateElement(''appSettings''); $configuration.AppendChild($appSettings) | Out-Null;',
+            '  $serverSetting = $settings.CreateElement(''add''); $serverSetting.SetAttribute(''key'', ''Server''); $serverSetting.SetAttribute(''value'', $serverHost); $appSettings.AppendChild($serverSetting) | Out-Null;',
+            '  $portSetting = $settings.CreateElement(''add''); $portSetting.SetAttribute(''key'', ''ClientServicesPort''); $portSetting.SetAttribute(''value'', $serverPort); $appSettings.AppendChild($portSetting) | Out-Null;',
+            '  $instanceSetting = $settings.CreateElement(''add''); $instanceSetting.SetAttribute(''key'', ''ServerInstance''); $instanceSetting.SetAttribute(''value'', $serverInstance); $appSettings.AppendChild($instanceSetting) | Out-Null;',
+            '  $historySetting = $settings.CreateElement(''add''); $historySetting.SetAttribute(''key'', ''UrlHistory''); $historySetting.SetAttribute(''value'', $serverUrl); $appSettings.AppendChild($historySetting) | Out-Null;',
+            '};',
+            '$settings.Save($settingsPath);',
+            'Write-Host "[OK] SITE client settings updated: $settingsPath"'
+          )]

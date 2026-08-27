@@ -37,6 +37,7 @@
         ".\\Configurations\\Store-Apps.dsc.yaml",
         ".\\Configurations\\BusinessCentral.dsc.yaml",
         ".\\Configurations\\AppSpace-Setup.dsc.yaml",
+        ".\\Configurations\\SITE-ClientUserSettings.dsc.yaml",
         ".\\Configurations\\SQLServer2025.dsc.yaml",
         ".\\Configurations\\Git-Repos.dsc.yaml",
         ".\\Configurations\\VSCode-Setup.dsc.yaml",
