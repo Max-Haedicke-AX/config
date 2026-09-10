@@ -21,11 +21,13 @@ $ErrorActionPreference = 'Stop'
 # ---------------------------------------------------------------------------
 # Constants
 # ---------------------------------------------------------------------------
-$REPO_URL    = 'https://github.com/Max-Haedicke-AX/config.git'
-$REPO_PATH   = 'C:\DEV\config'
-$DSC_PACKAGE = 'Microsoft.DSC'
+$REPO_BASE_URL = 'https://github.com/Max-Haedicke-AX/config'
+$REPO_URL      = "$REPO_BASE_URL.git"
+$REPO_PATH     = 'C:\DEV\config'
+$DSC_PACKAGE   = 'Microsoft.DSC'
+$BRANCH        = 'coworker'
 
-# Execution order matters: System first, Git-Repos last (needs git installed)
+# Execution order matters: system and tools first, repositories before dependent setups.
 $DSC_CONFIGS = @(
     'System-Configuration.dsc.yaml',
     'WinGet-Apps.dsc.yaml',
@@ -65,7 +67,8 @@ $isAdmin = $currentPrincipal.IsInRole([Security.Principal.WindowsBuiltInRole]::A
 
 if (-not $isAdmin) {
     Write-Host 'Restarting as Administrator...' -ForegroundColor Yellow
-    $psArgs = "-NoProfile -ExecutionPolicy Bypass -Command `"irm '$REPO_URL/raw/main/bootstrap.ps1' | iex`""
+    $bootstrapUrl = "$REPO_BASE_URL/raw/$BRANCH/bootstrap.ps1"
+    $psArgs = "-NoProfile -ExecutionPolicy Bypass -Command `"irm '$bootstrapUrl' | iex`""
     # When piped via iex there is no script file path - re-launch from the raw URL
     Start-Process -FilePath 'pwsh.exe' -ArgumentList $psArgs -Verb RunAs
     exit
@@ -118,8 +121,8 @@ Write-Success 'git is available.'
 # ---------------------------------------------------------------------------
 Write-Step 'Preparing config repository...'
 if (-not (Test-Path $REPO_PATH)) {
-    Write-Host "    Cloning $REPO_URL to $REPO_PATH..."
-    git clone $REPO_URL $REPO_PATH
+    Write-Host "    Cloning branch '$BRANCH' from $REPO_URL to $REPO_PATH..."
+    git clone --branch $BRANCH --single-branch $REPO_URL $REPO_PATH
 } else {
     Write-Host "    $REPO_PATH already exists, pulling latest changes..."
     git -C $REPO_PATH pull --ff-only

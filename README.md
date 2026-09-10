@@ -7,8 +7,10 @@ Dieses Repo enthält DSC v3-Konfigurationen für die vollautomatische Einrichtun
 PowerShell **als Administrator** öffnen und ausführen:
 
 ```powershell
-irm https://raw.githubusercontent.com/Max-Haedicke-AX/config/main/bootstrap.ps1 | iex
+irm https://raw.githubusercontent.com/Max-Haedicke-AX/config/coworker/bootstrap.ps1 | iex
 ```
+
+Der One-Liner verwendet ausdrücklich den Branch `coworker`.
 
 Das Skript erledigt automatisch:
 
@@ -26,12 +28,12 @@ Das Skript erledigt automatisch:
 | `WinGet-Apps.dsc.yaml` | Apps via winget |
 | `GitConfiguration.dsc.yaml` | Git-Konfiguration |
 | `PowerShell-Modules.dsc.yaml` | PowerShell-Module |
+| `VSCode-Setup.dsc.yaml` | VS Code und Erweiterungen |
+| `Git-Repos.dsc.yaml` | Repositories klonen |
 | `WSL-Setup.dsc.yaml` | WSL |
 | `Store-Apps.dsc.yaml` | Microsoft Store Apps |
-| `BusinessCentral.dsc.yaml` | Business Central Setup |
 | `AppSpace-Setup.dsc.yaml` | AppSpace Setup |
-| `SQLServer2025.dsc.yaml` | SQL Server 2025 |
-| `Git-Repos.dsc.yaml` | Repositories klonen |
+| `SITE-ClientUserSettings.dsc.yaml` | SITE-Client-Einstellungen |
 
 ## Voraussetzungen
 
