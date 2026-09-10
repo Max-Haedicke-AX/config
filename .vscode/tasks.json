@@ -35,16 +35,10 @@
         ".\\Configurations\\PowerShell-Modules.dsc.yaml",
         ".\\Configurations\\WSL-Setup.dsc.yaml",
         ".\\Configurations\\Store-Apps.dsc.yaml",
-        ".\\Configurations\\BusinessCentral.dsc.yaml",
         ".\\Configurations\\AppSpace-Setup.dsc.yaml",
         ".\\Configurations\\SITE-ClientUserSettings.dsc.yaml",
-        ".\\Configurations\\SQLServer2025.dsc.yaml",
         ".\\Configurations\\Git-Repos.dsc.yaml",
         ".\\Configurations\\VSCode-Setup.dsc.yaml",
-        ".\\Configurations\\BCLicenseSync-Task.dsc.yaml",
-        ".\\Configurations\\BackupSQL-Task.dsc.yaml",
-        ".\\Configurations\\GitFetch-Task.dsc.yaml",
-        ".\\Configurations\\GitBranchCleanup-Task.dsc.yaml"
       ]
     }
   ]

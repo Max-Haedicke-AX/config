@@ -30,19 +30,19 @@ resources:
       source: winget
       _exist: true
 
-  # - name: DockerDesktop
-  #   type: Microsoft.WinGet/Package
-  #   properties:
-  #     id: Docker.DockerDesktop
-  #     source: winget
-  #     _exist: true
-
-  - name: RancherDesktop
+  - name: DockerDesktop
     type: Microsoft.WinGet/Package
     properties:
-      id: SUSE.RancherDesktop
+      id: Docker.DockerDesktop
       source: winget
       _exist: true
+
+  # - name: RancherDesktop
+  #   type: Microsoft.WinGet/Package
+  #   properties:
+  #     id: SUSE.RancherDesktop
+  #     source: winget
+  #     _exist: true
 
   # .NET SDKs
   - name: DotNetSDK6
@@ -161,12 +161,12 @@ resources:
       source: winget
       _exist: true
 
-  - name: SQLServer2025Developer
-    type: Microsoft.WinGet/Package
-    properties:
-      id: Microsoft.SQLServer.2025.Developer
-      source: winget
-      _exist: true
+  # - name: SQLServer2025Developer
+  #   type: Microsoft.WinGet/Package
+  #   properties:
+  #     id: Microsoft.SQLServer.2025.Developer
+  #     source: winget
+  #     _exist: true
 
   - name: AzureStorageExplorer
     type: Microsoft.WinGet/Package
@@ -228,13 +228,6 @@ resources:
       source: winget
       _exist: true
 
-  - name: Element
-    type: Microsoft.WinGet/Package
-    properties:
-      id: Element.Element
-      source: winget
-      _exist: true
-
   # API & Testing Tools
   - name: Postman
     type: Microsoft.WinGet/Package
@@ -258,20 +251,6 @@ resources:
       source: winget
       _exist: true
 
-  - name: Gpg4win
-    type: Microsoft.WinGet/Package
-    properties:
-      id: GnuPG.Gpg4win
-      source: winget
-      _exist: true
-
-  - name: GnuPG
-    type: Microsoft.WinGet/Package
-    properties:
-      id: GnuPG.GnuPG
-      source: winget
-      _exist: true
-
   - name: WindowsTerminal
     type: Microsoft.WinGet/Package
     properties:
@@ -290,20 +269,6 @@ resources:
     type: Microsoft.WinGet/Package
     properties:
       id: Microsoft.OpenSSH.Beta
-      source: winget
-      _exist: true
-
-  - name: PuTTY
-    type: Microsoft.WinGet/Package
-    properties:
-      id: PuTTY.PuTTY
-      source: winget
-      _exist: true
-
-  - name: Tailscale
-    type: Microsoft.WinGet/Package
-    properties:
-      id: tailscale.tailscale
       source: winget
       _exist: true
 
@@ -393,10 +358,3 @@ resources:
   #     id: DominikReichl.KeePass
   #     source: winget
   #     _exist: true
-
-  - name: KeePassXC
-    type: Microsoft.WinGet/Package
-    properties:
-      id: KeePassXCTeam.KeePassXC
-      source: winget
-      _exist: true

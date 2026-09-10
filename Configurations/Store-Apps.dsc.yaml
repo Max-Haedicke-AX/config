@@ -1,13 +1,6 @@
 $schema: https://aka.ms/dsc/schemas/v3/bundled/config/document.json
 
 resources:
-  - name: HpSmart
-    type: Microsoft.WinGet/Package
-    properties:
-      id: 9WZDNCRFHWLH
-      source: msstore
-      _exist: true
-
   - name: LenovoVantage
     type: Microsoft.WinGet/Package
     properties:

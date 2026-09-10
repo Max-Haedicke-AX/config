@@ -53,7 +53,7 @@ resources:
         - config
         - --global
         - pull.rebase
-        - "true"
+        - "false"
 
   - name: FetchPrune
     type: Microsoft.DSC.Transitional/RunCommandOnSet
