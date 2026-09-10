@@ -128,8 +128,12 @@ if (-not (Test-Path $REPO_PATH)) {
     Write-Host "    Cloning branch '$BRANCH' from $REPO_URL to $REPO_PATH..."
     git clone --branch $BRANCH --single-branch $REPO_URL $REPO_PATH
 } else {
-    Write-Host "    $REPO_PATH already exists, pulling latest changes..."
-    git -C $REPO_PATH pull --ff-only
+    $currentBranch = (git -C $REPO_PATH branch --show-current).Trim()
+    if ($currentBranch -ne $BRANCH) {
+        throw "Existing config repo is on branch '$currentBranch'; expected '$BRANCH'."
+    }
+    Write-Host "    $REPO_PATH already exists on '$BRANCH', pulling latest changes..."
+    git -C $REPO_PATH pull --ff-only origin $BRANCH
 }
 Write-Success "Config repo ready at $REPO_PATH"
 
