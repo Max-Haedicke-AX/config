@@ -10,6 +10,8 @@ PowerShell **als Administrator** öffnen und ausführen:
 irm https://raw.githubusercontent.com/Max-Haedicke-AX/config/main/bootstrap.ps1 | iex
 ```
 
+Der One-Liner verwendet ausdrücklich den Branch `main`.
+
 Das Skript erledigt automatisch:
 
 1. Winget prüfen / installieren
@@ -26,12 +28,16 @@ Das Skript erledigt automatisch:
 | `WinGet-Apps.dsc.yaml` | Apps via winget |
 | `GitConfiguration.dsc.yaml` | Git-Konfiguration |
 | `PowerShell-Modules.dsc.yaml` | PowerShell-Module |
+| `VSCode-Setup.dsc.yaml` | VS Code und Erweiterungen |
+| `Git-Repos.dsc.yaml` | Repositories klonen |
 | `WSL-Setup.dsc.yaml` | WSL |
 | `Store-Apps.dsc.yaml` | Microsoft Store Apps |
-| `BusinessCentral.dsc.yaml` | Business Central Setup |
 | `AppSpace-Setup.dsc.yaml` | AppSpace Setup |
-| `SQLServer2025.dsc.yaml` | SQL Server 2025 |
-| `Git-Repos.dsc.yaml` | Repositories klonen |
+| `SITE-ClientUserSettings.dsc.yaml` | SITE-Client-Einstellungen |
+| `BackupSQL-Task.dsc.yaml` | Geplante SQL-Datenbanksicherung |
+| `GitFetch-Task.dsc.yaml` | Geplanter Fetch für Git-Repositories |
+| `BCLicenseSync-Task.dsc.yaml` | Geplanter Abgleich von Business-Central-Entwicklungslizenzen |
+| `GitBranchCleanup-Task.dsc.yaml` | Geplante Bereinigung gemergter Git-Branches |
 
 ## Voraussetzungen
 

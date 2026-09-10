@@ -21,11 +21,13 @@ $ErrorActionPreference = 'Stop'
 # ---------------------------------------------------------------------------
 # Constants
 # ---------------------------------------------------------------------------
-$REPO_URL    = 'https://github.com/Max-Haedicke-AX/config.git'
-$REPO_PATH   = 'C:\DEV\config'
-$DSC_PACKAGE = 'Microsoft.DSC'
+$REPO_BASE_URL = 'https://github.com/Max-Haedicke-AX/config'
+$REPO_URL      = "$REPO_BASE_URL.git"
+$REPO_PATH     = 'C:\DEV\config'
+$DSC_PACKAGE   = 'Microsoft.DSC'
+$BRANCH        = 'main'
 
-# Execution order matters: System first, Git-Repos last (needs git installed)
+# Execution order matters: system and tools first, repositories before dependent setups.
 $DSC_CONFIGS = @(
     'System-Configuration.dsc.yaml',
     'WinGet-Apps.dsc.yaml',
@@ -37,9 +39,9 @@ $DSC_CONFIGS = @(
     'Store-Apps.dsc.yaml',
     'AppSpace-Setup.dsc.yaml',
     'SITE-ClientUserSettings.dsc.yaml',
-    'BCLicenseSync-Task.dsc.yaml',
     'BackupSQL-Task.dsc.yaml',
     'GitFetch-Task.dsc.yaml',
+    'BCLicenseSync-Task.dsc.yaml',
     'GitBranchCleanup-Task.dsc.yaml'
 )
 
@@ -69,7 +71,8 @@ $isAdmin = $currentPrincipal.IsInRole([Security.Principal.WindowsBuiltInRole]::A
 
 if (-not $isAdmin) {
     Write-Host 'Restarting as Administrator...' -ForegroundColor Yellow
-    $psArgs = "-NoProfile -ExecutionPolicy Bypass -Command `"irm '$REPO_URL/raw/main/bootstrap.ps1' | iex`""
+    $bootstrapUrl = "$REPO_BASE_URL/raw/$BRANCH/bootstrap.ps1"
+    $psArgs = "-NoProfile -ExecutionPolicy Bypass -Command `"irm '$bootstrapUrl' | iex`""
     # When piped via iex there is no script file path - re-launch from the raw URL
     Start-Process -FilePath 'pwsh.exe' -ArgumentList $psArgs -Verb RunAs
     exit
@@ -122,8 +125,8 @@ Write-Success 'git is available.'
 # ---------------------------------------------------------------------------
 Write-Step 'Preparing config repository...'
 if (-not (Test-Path $REPO_PATH)) {
-    Write-Host "    Cloning $REPO_URL to $REPO_PATH..."
-    git clone $REPO_URL $REPO_PATH
+    Write-Host "    Cloning branch '$BRANCH' from $REPO_URL to $REPO_PATH..."
+    git clone --branch $BRANCH --single-branch $REPO_URL $REPO_PATH
 } else {
     Write-Host "    $REPO_PATH already exists, pulling latest changes..."
     git -C $REPO_PATH pull --ff-only
@@ -151,9 +154,7 @@ foreach ($configFile in $DSC_CONFIGS) {
     Write-Step "Applying: $configFile"
 
     if (-not (Test-Path $configPath)) {
-        Write-Warn "Config file not found, skipping: $configPath"
-        $results.Add([PSCustomObject]@{ Config = $configFile; Status = 'Skipped'; Changed = '-'; Total = '-' })
-        continue
+        throw "Config file not found: $configPath"
     }
 
     try {
@@ -162,7 +163,12 @@ foreach ($configFile in $DSC_CONFIGS) {
         $prevPref = $ErrorActionPreference
         $ErrorActionPreference = 'Continue'
         $rawOutput = dsc config set --file $configPath --output-format json 2>&1
+        $dscExitCode = $LASTEXITCODE
         $ErrorActionPreference = $prevPref
+
+        if ($dscExitCode -ne 0) {
+            throw "DSC failed with exit code $dscExitCode"
+        }
 
         # Split stream: ErrorRecord = stderr (DSC errors), string = stdout (JSON)
         $stderrLines = @($rawOutput | Where-Object { $_ -is [System.Management.Automation.ErrorRecord] } |
@@ -180,6 +186,10 @@ foreach ($configFile in $DSC_CONFIGS) {
         $dscResult = $null
         if ($jsonText) {
             $dscResult = $jsonText | ConvertFrom-Json -ErrorAction SilentlyContinue
+        }
+
+        if (-not $dscResult) {
+            throw 'DSC returned no valid JSON result'
         }
 
         $total   = 0
