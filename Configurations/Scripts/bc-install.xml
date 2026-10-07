@@ -1,0 +1,44 @@
+<Configuration>
+    <Component Id="WebClient" State="Local" ShowOptionNode="yes" />
+    <Component Id="SQLServerDatabase" State="Absent" ShowOptionNode="yes" />
+    <Component Id="SQLDemoDatabase" State="Absent" ShowOptionNode="yes" />
+    <Component Id="ServiceTier" State="Local" ShowOptionNode="yes" />
+    <Component Id="Pagetest" State="Local" ShowOptionNode="yes" />
+    <Component Id="DevelopmentEnvironment" State="Absent" ShowOptionNode="no" />
+    <Parameter Id="TargetPath"
+        Value="[WIX_ProgramFilesFolder]\Microsoft Dynamics 365 Business Central\290" />
+    <Parameter Id="TargetPathX64"
+        Value="C:\Program Files\Microsoft Dynamics 365 Business Central\290" />
+    <Parameter Id="NavServiceServerName" Value="localhost" />
+    <Parameter Id="NavServiceInstanceName" Value="BC290" />
+    <Parameter Id="NavServiceAccount" Value="NT-AUTORITÄT\Netzwerkdienst" />
+    <Parameter Id="NavServiceAccountPassword" IsHidden="yes" Value="" />
+    <Parameter Id="ServiceCertificateThumbprint" Value="" />
+    <Parameter Id="ManagementServiceServerPort" Value="7045" />
+    <Parameter Id="ManagementServiceFirewallOption" Value="false" />
+    <Parameter Id="NavServiceClientServicesPort" Value="7085" />
+    <Parameter Id="WebServiceServerPort" Value="7047" />
+    <Parameter Id="WebServiceServerEnabled" Value="false" />
+    <Parameter Id="DataServiceServerPort" Value="7048" />
+    <Parameter Id="DataServiceServerEnabled" Value="false" />
+    <Parameter Id="DeveloperServiceServerPort" Value="7049" />
+    <Parameter Id="DeveloperServiceServerEnabled" Value="false" />
+    <Parameter Id="SnapshotDebuggerServiceServerPort" Value="7083" />
+    <Parameter Id="SnapshotDebuggerEnabled" Value="false" />
+    <Parameter Id="NavFirewallOption" Value="true" />
+    <Parameter Id="CredentialTypeOption" Value="Windows" />
+    <Parameter Id="DnsIdentity" Value="" />
+    <Parameter Id="SQLServer" Value="" />
+    <Parameter Id="SQLInstanceName" Value="" />
+    <Parameter Id="SQLDatabaseName" Value="" />
+    <Parameter Id="SQLReplaceDb" Value="FAILINSTALLATION" />
+    <Parameter Id="SQLAddLicense" Value="true" />
+    <Parameter Id="PostponeServerStartup" Value="false" />
+    <Parameter Id="PublicODataBaseUrl" Value="" />
+    <Parameter Id="PublicSOAPBaseUrl" Value="" />
+    <Parameter Id="PublicWebBaseUrl" Value="" />
+    <Parameter Id="WebServerPort" Value="7140" />
+    <Parameter Id="WebServerSSLCertificateThumbprint" Value="" />
+    <Parameter Id="WebClientRunDemo" Value="true" />
+    <Parameter Id="WebClientDependencyBehavior" Value="install" />
+</Configuration>

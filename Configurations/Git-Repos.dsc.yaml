@@ -5,6 +5,15 @@ $schema: https://aka.ms/dsc/schemas/v3/bundled/config/document.json
 # RunCommandOnSet skips cloning if the target folder already exists.
 
 resources:
+  # Business Central installer (one branch per version/localization, see BusinessCentral.dsc.yaml)
+  - name: Clone BusinessCentral Installer
+    type: Microsoft.DSC.Transitional/RunCommandOnSet
+    properties:
+      executable: pwsh
+      arguments:
+        - -Command
+        - if (-not (Test-Path 'C:\DEV\BusinessCentral-Installer')) { git clone 'https://axiansinfoma@dev.azure.com/axiansinfoma/RMT/_git/BusinessCentral-Installer' 'C:\DEV\BusinessCentral-Installer' }
+
   # AppSpace-App
   - name: Clone ePayment
     type: Microsoft.DSC.Transitional/RunCommandOnSet
