@@ -43,7 +43,8 @@
         ".\\Configurations\\GitFetch-Task.dsc.yaml",
         ".\\Configurations\\BCLicenseSync-Task.dsc.yaml",
         ".\\Configurations\\GitBranchCleanup-Task.dsc.yaml",
-        ".\\Configurations\\BusinessCentral.dsc.yaml"
+        ".\\Configurations\\BusinessCentral.dsc.yaml",
+        ".\\Configurations\\SQLServer2025.dsc.yaml"
       ]
     }
   ]
