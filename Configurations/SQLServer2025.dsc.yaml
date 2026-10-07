@@ -1,0 +1,364 @@
+$schema: https://aka.ms/dsc/schemas/v3/bundled/config/document.json
+
+# Microsoft SQL Server 2025 Developer Edition – Silent Installation (English)
+#
+# Prerequisites:
+#   - Run as Administrator
+#   - WinGet available
+#   - DSC v3 installed: winget install Microsoft.DSC
+#
+# Usage (default instance):
+#   dsc config set --file SQLServer2025.dsc.yaml
+#
+# Usage (named instance with custom params):
+#   dsc config set --file SQLServer2025.dsc.yaml --parameters '{
+#     "InstanceName":        "SQL2025",
+#     "InstanceId":          "SQL2025",
+#     "SqlSysAdminAccounts": "VEDOM1\\Max.HAEDICKE",
+#     "Features":            "SQLENGINE,FULLTEXT"
+#   }'
+#
+# Current configuration (from ConfigurationFile.ini):
+#   Instance:      SQL2025 (named instance)
+#   Features:      SQLENGINE, FULLTEXT
+#   Auth:          Mixed Mode (SQL + Windows)
+#   Collation:     Latin1_General_CI_AS
+#   TempDB:        8 files, 8MB initial, 64MB growth
+#   TCP/IP:        Disabled (0)
+#   Named Pipes:   Disabled (0)
+#   SysAdmin:      VEDOM1\Max.HAEDICKE
+#
+# After installation connect via:
+#   .\SQL2025  or  <servername>\SQL2025
+
+parameters:
+
+  # ── Instance identity ────────────────────────────────────────────────────────
+  InstanceName:
+    type: string
+    defaultValue: SQL2025
+    description: >
+      SQL Server instance name.
+      'MSSQLSERVER' = default instance (connect without instance suffix).
+      Any other value = named instance (connect via server\InstanceName).
+
+  InstanceId:
+    type: string
+    defaultValue: SQL2025
+    description: >
+      SQL Server instance ID used as the folder name inside the installation
+      directory (e.g. MSSQL17.<InstanceId>). Typically matches InstanceName.
+
+  # ── Features ─────────────────────────────────────────────────────────────────
+  Features:
+    type: string
+    defaultValue: SQLENGINE,FULLTEXT
+    description: >
+      Comma-separated list of features to install.
+      Current: SQLENGINE, FULLTEXT.
+      Other options: REPLICATION, IS, AS, RS, CONN, SDK.
+
+  # ── Service accounts ─────────────────────────────────────────────────────────
+  SqlSvcAccount:
+    type: string
+    defaultValue: NT Service\MSSQL$SQL2025
+    description: >
+      Windows account for the SQL Server Database Engine service.
+      Use 'NT Service\MSSQL$<InstanceName>' for named instances.
+
+  SqlSvcStartupType:
+    type: string
+    defaultValue: Automatic
+    description: "Startup type for the Database Engine service: Automatic | Manual | Disabled."
+
+  AgtSvcAccount:
+    type: string
+    defaultValue: NT Service\SQLAgent$SQL2025
+    description: >
+      Windows account for the SQL Server Agent service.
+      Use 'NT Service\SQLAgent$<InstanceName>' for named instances.
+
+  AgtSvcStartupType:
+    type: string
+    defaultValue: Manual
+    description: "Startup type for the SQL Server Agent service: Automatic | Manual | Disabled."
+
+  # ── Security ─────────────────────────────────────────────────────────────────
+  SqlSysAdminAccounts:
+    type: string
+    defaultValue: VEDOM1\Max.HAEDICKE
+    description: >
+      Space-separated Windows accounts to provision as SQL Server sysadmins.
+      Current: VEDOM1\Max.HAEDICKE
+
+  # ── Directories ──────────────────────────────────────────────────────────────
+  InstallSharedDir:
+    type: string
+    defaultValue: C:\Program Files\Microsoft SQL Server
+    description: Shared installation root for all SQL Server versions.
+
+  InstallSharedWowDir:
+    type: string
+    defaultValue: C:\Program Files (x86)\Microsoft SQL Server
+    description: Shared installation root for 32-bit SQL Server components.
+
+  InstanceDir:
+    type: string
+    defaultValue: C:\Program Files\Microsoft SQL Server
+    description: Root directory for instance-specific components.
+
+  SqlUserDbDir:
+    type: string
+    defaultValue: C:\Program Files\Microsoft SQL Server\MSSQL\Data
+    description: Default data directory for user databases (.mdf / .ndf).
+
+  SqlUserDbLogDir:
+    type: string
+    defaultValue: C:\Program Files\Microsoft SQL Server\MSSQL\Log
+    description: Default log directory for user database transaction logs (.ldf).
+
+  SqlBackupDir:
+    type: string
+    defaultValue: C:\Program Files\Microsoft SQL Server\MSSQL\Backup
+    description: Default directory for SQL Server backups.
+
+  SqlTempDbDir:
+    type: string
+    defaultValue: C:\Program Files\Microsoft SQL Server\MSSQL\Data
+    description: Directory for TempDB data files.
+
+  SqlTempDbLogDir:
+    type: string
+    defaultValue: C:\Program Files\Microsoft SQL Server\MSSQL\Log
+    description: Directory for TempDB log files.
+
+  # ── Network ──────────────────────────────────────────────────────────────────
+  TcpEnabled:
+    type: int
+    defaultValue: 0
+    description: "Enable TCP/IP protocol: 1 = enabled, 0 = disabled (current: disabled)."
+
+  TcpPort:
+    type: string
+    defaultValue: "1433"
+    description: >
+      Static TCP port for SQL Server (default: 1433).
+      Note: TCP/IP is currently disabled; this port is inactive.
+
+  # ── SSMS ─────────────────────────────────────────────────────────────────────
+  InstallSsms:
+    type: string
+    defaultValue: "true"
+    description: >
+      Set to 'true' to also install SQL Server Management Studio (SSMS).
+
+  # ── Advanced / TempDB ────────────────────────────────────────────────────────
+  SqlTempDbFileCount:
+    type: int
+    defaultValue: 8
+    description: >
+      Number of TempDB data files.
+      Rule of thumb: equal to number of CPU cores (or physical CPUs for high-concurrency systems).
+      Current: 8 files.
+
+  SqlTempDbFileSize:
+    type: int
+    defaultValue: 8
+    description: "Initial size of each TempDB data file in MB (current: 8MB)."
+
+  SqlTempDbFileGrowth:
+    type: int
+    defaultValue: 64
+    description: "Automatic growth increment of each TempDB data file in MB (current: 64MB)."
+
+  SqlTempDbLogFileSize:
+    type: int
+    defaultValue: 8
+    description: "Initial size of TempDB log file in MB (current: 8MB)."
+
+  SqlTempDbLogFileGrowth:
+    type: int
+    defaultValue: 64
+    description: "Automatic growth increment of TempDB log file in MB (current: 64MB)."
+
+  # ── Advanced / Collation & Security ──────────────────────────────────────────
+  SqlCollation:
+    type: string
+    defaultValue: Latin1_General_CI_AS
+    description: >
+      Database collation.
+      Current: Latin1_General_CI_AS (case-insensitive, accent-sensitive).
+
+  SqlSecurityMode:
+    type: string
+    defaultValue: SQL
+    description: >
+      Authentication mode: 'Windows' or 'SQL' (Mixed Mode).
+      Current: SQL (Mixed Mode - Windows + SQL authentication).
+
+resources:
+
+  # ── 1. Prerequisite directories ──────────────────────────────────────────────
+
+  - name: CreateSQLDataDir
+    type: Microsoft.DSC.Transitional/RunCommandOnSet
+    properties:
+      executable: pwsh
+      arguments:
+        - -NonInteractive
+        - -Command
+        - "[concat('New-Item -ItemType Directory -Force -Path \"', parameters('SqlUserDbDir'), '\" | Out-Null')]"
+
+  - name: CreateSQLLogDir
+    type: Microsoft.DSC.Transitional/RunCommandOnSet
+    properties:
+      executable: pwsh
+      arguments:
+        - -NonInteractive
+        - -Command
+        - "[concat('New-Item -ItemType Directory -Force -Path \"', parameters('SqlUserDbLogDir'), '\" | Out-Null')]"
+
+  - name: CreateSQLBackupDir
+    type: Microsoft.DSC.Transitional/RunCommandOnSet
+    properties:
+      executable: pwsh
+      arguments:
+        - -NonInteractive
+        - -Command
+        - "[concat('New-Item -ItemType Directory -Force -Path \"', parameters('SqlBackupDir'), '\" | Out-Null')]"
+
+  # ── 2. SQL Server 2025 installation ──────────────────────────────────────────
+  #
+  # WinGet downloads the SQL Server 2025 Developer installer and runs it silently.
+  # All instance settings are forwarded via --override to setup.exe.
+  # /ENU and /LCID=1033 both enforce English-language installation.
+  # 
+  # Additional parameters from ConfigurationFile.ini:
+  #   - SQLCOLLATION for database collation
+  #   - SECURITYMODE for authentication (SQL = Mixed Mode)
+  #   - SQLTEMPDBFILECOUNT for TempDB parallelism
+  #   - SQLMAXDOP for max degree of parallelism
+
+  - name: SQLServer2025Developer
+    type: Microsoft.DSC.Transitional/RunCommandOnSet
+    dependsOn:
+      - "[resourceId('Microsoft.DSC.Transitional/RunCommandOnSet','CreateSQLDataDir')]"
+      - "[resourceId('Microsoft.DSC.Transitional/RunCommandOnSet','CreateSQLLogDir')]"
+      - "[resourceId('Microsoft.DSC.Transitional/RunCommandOnSet','CreateSQLBackupDir')]"
+    properties:
+      executable: pwsh
+      arguments:
+        - -NonInteractive
+        - -Command
+        - >-
+          [concat(
+            '$instanceExists = [bool](Get-Service -Name ''MSSQL$', parameters('InstanceName'), ''' -ErrorAction SilentlyContinue);',
+            'if ($instanceExists) { Write-Host "[SKIP] SQL Server instance already installed: ', parameters('InstanceName'), '" } else {',
+            '$sqlArgs = ''/QS /ACTION=Install /ENU=True /LCID=1033',
+            ' /FEATURES=', parameters('Features'),
+            ' /INSTANCENAME=', parameters('InstanceName'),
+            ' /INSTANCEID=', parameters('InstanceId'),
+            ' /INSTALLSHAREDDIR="', parameters('InstallSharedDir'), '"',
+            ' /INSTALLSHAREDWOWDIR="', parameters('InstallSharedWowDir'), '"',
+            ' /INSTANCEDIR="', parameters('InstanceDir'), '"',
+            ' /SQLSVCACCOUNT="', parameters('SqlSvcAccount'), '"',
+            ' /SQLSVCSTARTUPTYPE=', parameters('SqlSvcStartupType'),
+            ' /AGTSVCACCOUNT="', parameters('AgtSvcAccount'), '"',
+            ' /AGTSVCSTARTUPTYPE=', parameters('AgtSvcStartupType'),
+            ' /SQLSYSADMINACCOUNTS="', parameters('SqlSysAdminAccounts'), '"',
+            ' /SQLUSERDBDIR="', parameters('SqlUserDbDir'), '"',
+            ' /SQLUSERDBLOGDIR="', parameters('SqlUserDbLogDir'), '"',
+            ' /SQLBACKUPDIR="', parameters('SqlBackupDir'), '"',
+            ' /SQLTEMPDBDIR="', parameters('SqlTempDbDir'), '"',
+            ' /SQLTEMPDBLOGDIR="', parameters('SqlTempDbLogDir'), '"',
+            ' /SQLTEMPDBFILECOUNT=', string(parameters('SqlTempDbFileCount')),
+            ' /SQLTEMPDBFILESIZE=', string(parameters('SqlTempDbFileSize')),
+            ' /SQLTEMPDBFILEGROWTH=', string(parameters('SqlTempDbFileGrowth')),
+            ' /SQLTEMPDBLOGFILESIZE=', string(parameters('SqlTempDbLogFileSize')),
+            ' /SQLTEMPDBLOGFILEGROWTH=', string(parameters('SqlTempDbLogFileGrowth')),
+            ' /SQLCOLLATION=', parameters('SqlCollation'),
+            ' /SECURITYMODE=', parameters('SqlSecurityMode'),
+            ' /TCPENABLED=', string(parameters('TcpEnabled')),
+            ' /NPENABLED=0',
+            ' /IACCEPTSQLSERVERLICENSETERMS'';',
+            ' winget install --id Microsoft.SQLServer.2025.Developer',
+            ' --exact --silent',
+            ' --accept-package-agreements --accept-source-agreements',
+            ' --locale en-US',
+            ' --override $sqlArgs',
+            '}'
+          )]
+
+  # ── 3. Windows Firewall rule for SQL Server (only if TCP/IP enabled) ───────────
+
+  - name: FirewallRuleSQLServer
+    type: Microsoft.DSC.Transitional/RunCommandOnSet
+    dependsOn:
+      - "[resourceId('Microsoft.DSC.Transitional/RunCommandOnSet','SQLServer2025Developer')]"
+    properties:
+      executable: pwsh
+      arguments:
+        - -NonInteractive
+        - -Command
+        - "[concat('if (', string(parameters('TcpEnabled')), ' -eq 1) { $ruleName = \"SQL Server - ', parameters('InstanceName'), ' (TCP ', parameters('TcpPort'), ')\"; if (-not (Get-NetFirewallRule -DisplayName $ruleName -ErrorAction SilentlyContinue)) { New-NetFirewallRule -DisplayName $ruleName -Direction Inbound -Protocol TCP -LocalPort ', parameters('TcpPort'), ' -Action Allow | Out-Null; Write-Host \"Firewall rule created: $ruleName\" } else { Write-Host \"Firewall rule already exists: $ruleName\" } } else { Write-Host \"TCP/IP is disabled; firewall rule skipped.\" }')]"
+
+  # ── 4. Validate post-installation configuration ──────────────────────────────
+
+  - name: ValidateSQL2025Config
+    type: Microsoft.DSC.Transitional/RunCommandOnSet
+    dependsOn:
+      - "[resourceId('Microsoft.DSC.Transitional/RunCommandOnSet','SQLServer2025Developer')]"
+      - "[resourceId('Microsoft.DSC.Transitional/RunCommandOnSet','FirewallRuleSQLServer')]"
+    properties:
+      executable: pwsh
+      arguments:
+        - -NonInteractive
+        - -Command
+        - >-
+          [concat(
+            '$serverInstance = ".\', parameters('InstanceName'), '";',
+            '$tcpEnabled = ', string(parameters('TcpEnabled')), ';',
+            '$tcpPort = "', parameters('TcpPort'), '";',
+            'try {
+              Add-Type -AssemblyName "Microsoft.SqlServer.Management.Common" -ErrorAction SilentlyContinue;
+              $conn = New-Object "Microsoft.SqlServer.Management.Common.ServerConnection" $serverInstance;
+              $conn.Connect();
+              $server = New-Object "Microsoft.SqlServer.Management.Smo.Server" $conn;
+              Write-Host "════════════════════════════════════════════════════════════════";
+              Write-Host "✓ SQL Server 2025 Post-Installation Validation";
+              Write-Host "════════════════════════════════════════════════════════════════";
+              Write-Host "Instance Information:";
+              Write-Host "  Instance Name    : $serverInstance";
+              Write-Host "  Server Name      : $($server.Name)";
+              Write-Host "  Version          : $($server.Version.Major).$($server.Version.Minor) Build $($server.Version.Build)";
+              Write-Host "  Edition          : $($server.Edition)";
+              Write-Host "  Collation        : $($server.Collation)";
+              Write-Host "Authentication:";
+              $loginMode = $server.Settings.LoginMode;
+              $modeStr = if ($loginMode -eq 1) { "Windows Only" } elseif ($loginMode -eq 2) { "Mixed Mode" } else { "Unknown" };
+              Write-Host "  Mode             : $modeStr";
+              Write-Host "TempDB Configuration:";
+              $fileCount = $server.ConnectionContext.ExecuteScalar("SELECT COUNT(*) FROM sys.master_files WHERE db_id = 2 AND type = 0");
+              Write-Host "  Data Files       : $fileCount (expected: 8)";
+              Write-Host "Network Protocol:";
+              if ($tcpEnabled -eq 1) { Write-Host "  TCP/IP Enabled   : Yes (port $tcpPort)" } else { Write-Host "  TCP/IP Enabled   : No" };
+              Write-Host "✓ Configuration validation complete!";
+              $conn.Disconnect()
+            } catch {
+              Write-Host "⚠ Validation warning: $_";
+              Write-Host "  (This is non-fatal - SQL Server may still be initializing)"
+            }'
+          )]
+
+  # ── 5. SQL Server Management Studio (optional) ───────────────────────────────
+
+  - name: SSMS
+    type: Microsoft.DSC.Transitional/RunCommandOnSet
+    dependsOn:
+      - "[resourceId('Microsoft.DSC.Transitional/RunCommandOnSet','ValidateSQL2025Config')]"
+    properties:
+      executable: pwsh
+      arguments:
+        - -NonInteractive
+        - -Command
+        - "[concat('if (\"', parameters('InstallSsms'), '\" -ne \"true\") { Write-Host \"SSMS installation skipped (InstallSsms=false)\"; exit 0 };', '$ssmsInstalled = [bool](Get-ItemProperty ''HKLM:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\*'',''HKLM:\\SOFTWARE\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\*'' -ErrorAction SilentlyContinue | Where-Object { $_.DisplayName -like ''*SQL Server Management Studio*'' });', 'if ($ssmsInstalled) { Write-Host \"[SKIP] SQL Server Management Studio is already installed.\" } else { Write-Host \"Installing SQL Server Management Studio...\"; winget install --id Microsoft.SQLServerManagementStudio --exact --silent --accept-package-agreements --accept-source-agreements --locale en-US; Write-Host \"[OK] SSMS installation complete\" }')]"

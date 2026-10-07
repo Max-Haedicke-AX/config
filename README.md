@@ -59,6 +59,17 @@ dsc config set --file .\Configurations\BusinessCentral.dsc.yaml --output-format 
 Andere Version/Lokalisierung bzw. Instanzname per Parameter überschreiben, siehe Kommentar-Header
 in der Datei für Details und Beispiele.
 
+## SQL Server 2025 Installation (optional, manuell)
+
+`SQLServer2025.dsc.yaml` ist ebenfalls **nicht** Teil des automatischen Bootstrap-Durchlaufs.
+Installiert SQL Server 2025 Developer als benannte Instanz (Standard: `SQL2025`) inkl. Volltextsuche
+und optional SSMS. Idempotent: überspringt die Installation, wenn die Instanz bzw. SSMS bereits
+vorhanden ist. Ausführung als Administrator.
+
+```powershell
+dsc config set --file .\Configurations\SQLServer2025.dsc.yaml --output-format pretty-json
+```
+
 ## Voraussetzungen
 
 - Windows 10/11
