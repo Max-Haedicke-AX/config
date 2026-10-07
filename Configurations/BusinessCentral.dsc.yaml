@@ -1,0 +1,332 @@
+$schema: https://aka.ms/dsc/schemas/v3/bundled/config/document.json
+
+# Business Central – Automated Installation
+#
+# The installer is no longer copied from a network share ZIP. Instead,
+# C:\DEV\BusinessCentral-Installer is a git clone (Azure DevOps RMT/BusinessCentral-Installer)
+# that has one branch per BC version/localization, e.g. "29.0-DE_(29.0.55365.0)".
+# This config checks out the requested branch and installs straight from the working tree.
+#
+# Prerequisites:
+#   - Run as Administrator
+#   - C:\DEV\BusinessCentral-Installer cloned (see Git-Repos.dsc.yaml) and reachable via VPN/LAN for git fetch
+#   - DSC v3: winget install Microsoft.DSC
+#   - Development license for the target version present in LicensesDir (synced via BCLicenseSync-Task.dsc.yaml)
+#
+# Usage (default – BC29 DE):
+#   dsc config set --file Configurations\BusinessCentral.dsc.yaml
+#
+# Usage (custom instance / different branch / against existing SQL Server):
+#   dsc config set --file Configurations\BusinessCentral.dsc.yaml --parameters '{
+#     "BcRepoBranch":           "29.0-AT_(29.0.55365.0)",
+#     "NavServiceInstanceName": "BC290",
+#     "BcInstallTargetPath":    "C:\\Program Files\\Microsoft Dynamics 365 Business Central\\290",
+#     "SqlServer":              "SQLSRV01",
+#     "SqlDatabaseName":        "BC290",
+#     "DeveloperServiceEnabled":"true"
+#   }'
+#
+# After installation:
+#   - Web Client : http://localhost:<WebServerPort>/BC
+#   - Admin Shell: Import-Module 'C:\Program Files\Microsoft Dynamics 365 Business Central\<ver>\Service\NavAdminTool.ps1'
+
+parameters:
+
+  # ── BC installer repository ──────────────────────────────────────────────────
+  BcRepoPath:
+    type: string
+    defaultValue: C:\DEV\BusinessCentral-Installer
+    description: >
+      Local clone of the BusinessCentral-Installer git repository (see Git-Repos.dsc.yaml).
+      NavInstallationTools.psm1 and setup.exe live at its root once the correct branch is checked out.
+
+  BcRepoBranch:
+    type: string
+    defaultValue: 29.0-DE_(29.0.55365.0)
+    description: >
+      Branch of BcRepoPath to check out, one per BC version/localization,
+      e.g. 29.0-DE_(29.0.55365.0) or 29.0-AT_(29.0.55365.0).
+
+  # ── Local working directories ─────────────────────────────────────────────────
+  GeneratedConfigDir:
+    type: string
+    defaultValue: C:\DEV\_Installation
+    description: Local directory the generated bc-install-current.xml is written to.
+
+  LicensesDir:
+    type: string
+    defaultValue: C:\DEV\_DevelopmentLicenses
+    description: >
+      Local directory holding development license files (.bclicense), kept in sync by
+      BCLicenseSync-Task.dsc.yaml.
+
+  BcLicensePrefix:
+    type: string
+    defaultValue: BC29
+    description: >
+      Filename prefix used to find the matching license in LicensesDir, e.g. BC29
+      matches BC29_*.bclicense. The newest matching file is used.
+
+  # ── BC instance ───────────────────────────────────────────────────────────────
+  BcInstallTargetPath:
+    type: string
+    defaultValue: C:\Program Files\Microsoft Dynamics 365 Business Central\290
+    description: >
+      Root installation directory for BC components.
+      Use the BC version number as the last folder segment (e.g. \290 for BC29).
+
+  NavServiceInstanceName:
+    type: string
+    defaultValue: BC290
+    description: >
+      BC service instance name (used in the Windows service name and the Web Client URL).
+      Convention: BC<major><minor>, e.g. BC290 for version 29.0.
+
+  NavServiceAccount:
+    type: string
+    defaultValue: NT AUTHORITY\NetworkService
+    description: >
+      Windows account under which the BC Service Tier runs.
+      Use 'NT AUTHORITY\NetworkService' or a dedicated domain service account.
+
+  # ── SQL Server ────────────────────────────────────────────────────────────────
+  SqlServer:
+    type: string
+    defaultValue: localhost
+    description: SQL Server hostname or IP address.
+
+  SqlInstanceName:
+    type: string
+    defaultValue: SQL2025
+    description: SQL Server named instance (empty = default instance).
+
+  SqlDatabaseName:
+    type: string
+    defaultValue: BC290
+    description: Name of the Business Central database to create / attach to.
+
+  # ── Ports ─────────────────────────────────────────────────────────────────────
+  ManagementPort:
+    type: int
+    defaultValue: 7045
+    description: NST management service port (used by BC admin tools).
+
+  ClientServicesPort:
+    type: int
+    defaultValue: 7085
+    description: NST client services port (used by the BC Web Client backend).
+
+  WebServicePort:
+    type: int
+    defaultValue: 7047
+    description: SOAP / OData web service port.
+
+  WebServiceEnabled:
+    type: string
+    defaultValue: "false"
+    description: "Expose SOAP/OData web services: true | false"
+
+  DataServicePort:
+    type: int
+    defaultValue: 7048
+    description: OData v4 / REST API port.
+
+  DataServiceEnabled:
+    type: string
+    defaultValue: "false"
+    description: "Expose OData v4 data service: true | false"
+
+  DeveloperServicePort:
+    type: int
+    defaultValue: 7049
+    description: AL developer service port (used by VS Code AL extension).
+
+  DeveloperServiceEnabled:
+    type: string
+    defaultValue: "false"
+    description: "Expose AL developer service: true | false (set true for dev machines)"
+
+  WebServerPort:
+    type: int
+    defaultValue: 7140
+    description: IIS port for the BC Web Client.
+
+  # ── Authentication ────────────────────────────────────────────────────────────
+  AuthenticationMode:
+    type: string
+    defaultValue: Windows
+    description: "BC authentication mode: Windows | NavUserPassword | UserName | AccessControlService"
+
+resources:
+
+  # ── 1. Local working directories ──────────────────────────────────────────────
+
+  - name: CreateGeneratedConfigDir
+    type: Microsoft.DSC.Transitional/RunCommandOnSet
+    properties:
+      executable: pwsh
+      arguments:
+        - -NonInteractive
+        - -Command
+        - "[concat('New-Item -ItemType Directory -Force -Path \"', parameters('GeneratedConfigDir'), '\" | Out-Null')]"
+
+  # ── 2. Check out the requested BC version/localization branch ────────────────
+  #       The repo must already be cloned (see Git-Repos.dsc.yaml). Resets the
+  #       local branch to match origin, so this is safe to re-run.
+
+  - name: CheckoutBCInstallerBranch
+    type: Microsoft.DSC.Transitional/RunCommandOnSet
+    properties:
+      executable: pwsh
+      arguments:
+        - -NonInteractive
+        - -Command
+        - >-
+          [concat(
+            '$repoPath = "', parameters('BcRepoPath'), '";',
+            '$branch   = "', parameters('BcRepoBranch'), '";',
+            'if (-not (Test-Path (Join-Path $repoPath ''.git''))) { Write-Error "BC installer repo not found at $repoPath. Clone it first (see Git-Repos.dsc.yaml)."; exit 1 }',
+            'Push-Location $repoPath;',
+            'try {',
+            '  git fetch origin --quiet;',
+            '  if ($LASTEXITCODE -ne 0) { throw "git fetch failed with exit code $LASTEXITCODE" }',
+            '  git checkout -B $branch "origin/$branch" --quiet;',
+            '  if ($LASTEXITCODE -ne 0) { throw "git checkout of branch ''$branch'' failed with exit code $LASTEXITCODE" }',
+            '  Write-Host "[OK] Checked out BC installer branch: $branch"',
+            '} finally { Pop-Location }'
+          )]
+
+  # ── 3. IIS prerequisites ──────────────────────────────────────────────────────
+  #       All features required by the BC Web Client in one pass.
+
+  - name: EnableIISFeatures
+    type: Microsoft.DSC.Transitional/RunCommandOnSet
+    properties:
+      executable: pwsh
+      arguments:
+        - -NonInteractive
+        - -Command
+        - |
+          $features = @(
+            'IIS-WebServerRole', 'IIS-WebServer',
+            'IIS-CommonHttpFeatures', 'IIS-DefaultDocument', 'IIS-DirectoryBrowsing',
+            'IIS-HttpErrors', 'IIS-StaticContent',
+            'IIS-HealthAndDiagnostics', 'IIS-HttpLogging', 'IIS-RequestMonitor', 'IIS-HttpTracing',
+            'IIS-Performance', 'IIS-HttpCompressionStatic',
+            'IIS-Security', 'IIS-RequestFiltering', 'IIS-BasicAuthentication', 'IIS-WindowsAuthentication',
+            'IIS-ApplicationDevelopment',
+            'IIS-NetFxExtensibility', 'IIS-NetFxExtensibility45',
+            'IIS-ASP', 'IIS-ASPNET', 'IIS-ASPNET45',
+            'IIS-ISAPIExtensions', 'IIS-ISAPIFilter',
+            'IIS-ManagementConsole'
+          )
+          foreach ($f in $features) {
+            $state = Get-WindowsOptionalFeature -Online -FeatureName $f -ErrorAction SilentlyContinue
+            if ($state.State -ne 'Enabled') {
+              Write-Host "  Enabling: $f"
+              Enable-WindowsOptionalFeature -Online -FeatureName $f -All -NoRestart | Out-Null
+            }
+          }
+          Write-Host '[OK] IIS features configured.'
+
+  # ── 4. Generate instance-specific bc-install-current.xml ─────────────────────
+
+  - name: GenerateBCInstallConfig
+    type: Microsoft.DSC.Transitional/RunCommandOnSet
+    dependsOn:
+      - "[resourceId('Microsoft.DSC.Transitional/RunCommandOnSet','CreateGeneratedConfigDir')]"
+    properties:
+      executable: pwsh
+      arguments:
+        - -NonInteractive
+        - -File
+        - C:\DEV\config\Configurations\Scripts\New-BCInstallConfig.ps1
+        - -InstanceName
+        - "[parameters('NavServiceInstanceName')]"
+        - -TargetPath
+        - "[parameters('BcInstallTargetPath')]"
+        - -ServiceAccount
+        - "[parameters('NavServiceAccount')]"
+        - -SqlServer
+        - "[parameters('SqlServer')]"
+        - -SqlInstanceName
+        - "[parameters('SqlInstanceName')]"
+        - -SqlDatabaseName
+        - "[parameters('SqlDatabaseName')]"
+        - -AuthenticationMode
+        - "[parameters('AuthenticationMode')]"
+        - -ManagementPort
+        - "[string(parameters('ManagementPort'))]"
+        - -ClientServicesPort
+        - "[string(parameters('ClientServicesPort'))]"
+        - -WebServicePort
+        - "[string(parameters('WebServicePort'))]"
+        - -WebServiceEnabled
+        - "[parameters('WebServiceEnabled')]"
+        - -DataServicePort
+        - "[string(parameters('DataServicePort'))]"
+        - -DataServiceEnabled
+        - "[parameters('DataServiceEnabled')]"
+        - -DeveloperServicePort
+        - "[string(parameters('DeveloperServicePort'))]"
+        - -DeveloperServiceEnabled
+        - "[parameters('DeveloperServiceEnabled')]"
+        - -WebServerPort
+        - "[string(parameters('WebServerPort'))]"
+        - -OutputFile
+        - "[concat(parameters('GeneratedConfigDir'), '\\bc-install-current.xml')]"
+
+  # ── 5. Install BC components via NavInstallationTools ─────────────────────────
+  #       NavInstallationTools.psm1 lives at the root of the checked-out branch.
+
+  - name: InstallBCComponents
+    type: Microsoft.DSC.Transitional/RunCommandOnSet
+    dependsOn:
+      - "[resourceId('Microsoft.DSC.Transitional/RunCommandOnSet','GenerateBCInstallConfig')]"
+      - "[resourceId('Microsoft.DSC.Transitional/RunCommandOnSet','CheckoutBCInstallerBranch')]"
+      - "[resourceId('Microsoft.DSC.Transitional/RunCommandOnSet','EnableIISFeatures')]"
+    properties:
+      executable: pwsh
+      arguments:
+        - -NonInteractive
+        - -Command
+        - >-
+          [concat(
+            '$navTools = Join-Path "', parameters('BcRepoPath'), '" ''NavInstallationTools.psm1'';',
+            '$config   = Join-Path "', parameters('GeneratedConfigDir'), '" ''bc-install-current.xml'';',
+            'if (-not (Test-Path $navTools)) { Write-Error "NavInstallationTools.psm1 not found: $navTools"; exit 1 }',
+            'if (-not (Test-Path $config))   { Write-Error "bc-install-current.xml not found: $config"; exit 1 }',
+            'Import-Module $navTools -Force;',
+            'Write-Host "Running Install-NAVComponent...";',
+            'Install-NAVComponent -ConfigFile $config;',
+            'Write-Host "[OK] Business Central components installed."'
+          )]
+
+  # ── 6. Import development license ─────────────────────────────────────────────
+  #       Imports the newest BcLicensePrefix*.bclicense file found in LicensesDir.
+  #       Requires the BC Admin Shell (Microsoft.Dynamics.Nav.Management module).
+
+  - name: ImportBCLicense
+    type: Microsoft.DSC.Transitional/RunCommandOnSet
+    dependsOn:
+      - "[resourceId('Microsoft.DSC.Transitional/RunCommandOnSet','InstallBCComponents')]"
+    properties:
+      executable: pwsh
+      arguments:
+        - -NonInteractive
+        - -Command
+        - >-
+          [concat(
+            '$licDir    = "', parameters('LicensesDir'), '";',
+            '$prefix    = "', parameters('BcLicensePrefix'), '";',
+            '$instance  = "', parameters('NavServiceInstanceName'), '";',
+            'if (-not (Test-Path $licDir)) { Write-Warning "Licenses directory not found: $licDir – skipping."; exit 0 }',
+            '$license   = Get-ChildItem -Path $licDir -Filter "$prefix*.bclicense" -File | Sort-Object LastWriteTime -Descending | Select-Object -First 1;',
+            'if ($null -eq $license) { Write-Warning "No $prefix*.bclicense file found in $licDir – skipping."; exit 0 }',
+            '$adminShell = Join-Path "', parameters('BcInstallTargetPath'), '" ''Service\NavAdminTool.ps1'';',
+            'if (-not (Test-Path $adminShell)) { Write-Warning "NavAdminTool.ps1 not found – skipping license import."; exit 0 }',
+            '. $adminShell;',
+            'Write-Host "Importing license: $($license.FullName)";',
+            'Import-NAVServerLicense -ServerInstance $instance -LicenseFile $license.FullName -Database NavDatabase;',
+            'Write-Host "[OK] License imported for instance: $instance"'
+          )]

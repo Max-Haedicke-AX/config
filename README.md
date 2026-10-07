@@ -39,6 +39,26 @@ Das Skript erledigt automatisch:
 | `BCLicenseSync-Task.dsc.yaml` | Geplanter Abgleich von Business-Central-Entwicklungslizenzen |
 | `GitBranchCleanup-Task.dsc.yaml` | Geplante Bereinigung gemergter Git-Branches |
 
+## Business Central Installation (optional, manuell)
+
+`BusinessCentral.dsc.yaml` ist bewusst **nicht** Teil des automatischen Bootstrap-Durchlaufs
+(nicht in `$DSC_CONFIGS` in `bootstrap.ps1`), da die Installation schwergewichtig ist und nicht
+auf jedem Rechner gebraucht wird. Voraussetzungen:
+
+- `Git-Repos.dsc.yaml` wurde ausgeführt, sodass `C:\DEV\BusinessCentral-Installer` geklont ist
+  (ein Branch pro BC-Version/Lokalisierung, z. B. `29.0-DE_(29.0.55365.0)`)
+- `BCLicenseSync-Task.dsc.yaml` synct Entwicklerlizenzen nach `C:\DEV\_DevelopmentLicenses`
+- Ausführung als Administrator
+
+Anwenden (Standard: BC29 DE):
+
+```powershell
+dsc config set --file .\Configurations\BusinessCentral.dsc.yaml --output-format pretty-json
+```
+
+Andere Version/Lokalisierung bzw. Instanzname per Parameter überschreiben, siehe Kommentar-Header
+in der Datei für Details und Beispiele.
+
 ## Voraussetzungen
 
 - Windows 10/11
