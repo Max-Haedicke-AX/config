@@ -35,9 +35,11 @@ $DSC_CONFIGS = @(
     'PowerShell-Modules.dsc.yaml',
     'VSCode-Setup.dsc.yaml',
     'Git-Repos.dsc.yaml',
+    'SQLServer2025.dsc.yaml',
     'WSL-Setup.dsc.yaml',
     'Store-Apps.dsc.yaml',
     'AppSpace-Setup.dsc.yaml',
+    'BusinessCentral.dsc.yaml',
     'SITE-ClientUserSettings.dsc.yaml'
 )
 
