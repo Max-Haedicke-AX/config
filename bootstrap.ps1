@@ -25,6 +25,7 @@ $REPO_BASE_URL = 'https://github.com/Max-Haedicke-AX/config'
 $REPO_URL      = "$REPO_BASE_URL.git"
 $REPO_PATH     = 'C:\DEV\config'
 $DSC_PACKAGE   = 'Microsoft.DSC'
+$POWERSHELL_PACKAGE = 'Microsoft.PowerShell'
 $BRANCH        = 'coworker'
 
 # Execution order matters: system and tools first, repositories before dependent setups.
@@ -72,7 +73,7 @@ if (-not $isAdmin) {
     $bootstrapUrl = "$REPO_BASE_URL/raw/$BRANCH/bootstrap.ps1"
     $psArgs = "-NoProfile -ExecutionPolicy Bypass -Command `"irm '$bootstrapUrl' | iex`""
     # When piped via iex there is no script file path - re-launch from the raw URL
-    Start-Process -FilePath 'pwsh.exe' -ArgumentList $psArgs -Verb RunAs
+    Start-Process -FilePath 'powershell.exe' -ArgumentList $psArgs -Verb RunAs
     exit
 }
 
@@ -91,7 +92,23 @@ if (-not (Get-Command winget -ErrorAction SilentlyContinue)) {
 Write-Success 'winget is available.'
 
 # ---------------------------------------------------------------------------
-# 2. Ensure DSC v3 is installed
+# 2. Ensure PowerShell 7 is installed (required by DSC RunCommandOnSet)
+# ---------------------------------------------------------------------------
+Write-Step 'Checking PowerShell 7...'
+if (-not (Get-Command pwsh -ErrorAction SilentlyContinue)) {
+    Write-Warn 'PowerShell 7 not found. Installing via winget...'
+    winget install --id $POWERSHELL_PACKAGE --exact --source winget `
+        --accept-source-agreements --accept-package-agreements --silent
+    $env:PATH = [System.Environment]::GetEnvironmentVariable('PATH', 'Machine') + ';' +
+                [System.Environment]::GetEnvironmentVariable('PATH', 'User')
+}
+if (-not (Get-Command pwsh -ErrorAction SilentlyContinue)) {
+    throw 'PowerShell 7 (pwsh.exe) is required but was not found after installation.'
+}
+Write-Success "PowerShell 7: $((Get-Command pwsh).Source)"
+
+# ---------------------------------------------------------------------------
+# 3. Ensure DSC v3 is installed
 # ---------------------------------------------------------------------------
 Write-Step 'Checking DSC v3...'
 if (-not (Get-Command dsc -ErrorAction SilentlyContinue)) {
@@ -106,7 +123,7 @@ $dscVersion = dsc --version 2>&1
 Write-Success "DSC version: $dscVersion"
 
 # ---------------------------------------------------------------------------
-# 3. Ensure git is available (needed for clone)
+# 4. Ensure git is available (needed for clone)
 # ---------------------------------------------------------------------------
 Write-Step 'Checking git...'
 if (-not (Get-Command git -ErrorAction SilentlyContinue)) {
@@ -119,7 +136,7 @@ if (-not (Get-Command git -ErrorAction SilentlyContinue)) {
 Write-Success 'git is available.'
 
 # ---------------------------------------------------------------------------
-# 4. Clone / update config repository
+# 5. Clone / update config repository
 # ---------------------------------------------------------------------------
 Write-Step 'Preparing config repository...'
 if (-not (Test-Path $REPO_PATH)) {
@@ -132,7 +149,7 @@ if (-not (Test-Path $REPO_PATH)) {
 Write-Success "Config repo ready at $REPO_PATH"
 
 # ---------------------------------------------------------------------------
-# 5. Apply each DSC configuration
+# 6. Apply each DSC configuration
 # ---------------------------------------------------------------------------
 
 # Ensure winget sources are accepted/updated before running WinGet DSC resources.
@@ -226,7 +243,7 @@ foreach ($configFile in $DSC_CONFIGS) {
 }
 
 # ---------------------------------------------------------------------------
-# 6. Summary
+# 7. Summary
 # ---------------------------------------------------------------------------
 Write-Host "`n========================================" -ForegroundColor Cyan
 Write-Host '  Bootstrap Summary' -ForegroundColor Cyan

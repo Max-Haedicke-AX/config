@@ -2,6 +2,13 @@ $schema: https://aka.ms/dsc/schemas/v3/bundled/config/document.json
 
 resources:
   # Development Tools
+  - name: PowerShell7
+    type: Microsoft.WinGet/Package
+    properties:
+      id: Microsoft.PowerShell
+      source: winget
+      _exist: true
+
   - name: PowerToys
     type: Microsoft.WinGet/Package
     properties:
