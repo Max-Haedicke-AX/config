@@ -275,7 +275,7 @@ resources:
   - name: OpenSSH
     type: Microsoft.WinGet/Package
     properties:
-      id: Microsoft.OpenSSH.Beta
+      id: Microsoft.OpenSSH.Preview
       source: winget
       _exist: true
 
@@ -290,13 +290,6 @@ resources:
     type: Microsoft.WinGet/Package
     properties:
       id: Microsoft.PowerBIReportBuilder
-      source: winget
-      _exist: true
-
-  - name: PolyLens
-    type: Microsoft.WinGet/Package
-    properties:
-      id: Poly.PolyLens
       source: winget
       _exist: true
 

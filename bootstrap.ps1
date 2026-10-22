@@ -155,7 +155,14 @@ Write-Success "Config repo ready at $REPO_PATH"
 # Ensure winget sources are accepted/updated before running WinGet DSC resources.
 # Without this, Microsoft.WinGet/Package fails with 0x8A150014 in a fresh admin session.
 Write-Step 'Updating winget sources...'
+winget search --id Microsoft.PowerShell --exact --source winget --accept-source-agreements | Out-Null
+if ($LASTEXITCODE -ne 0) {
+    throw "winget source agreement check failed with exit code $LASTEXITCODE"
+}
 winget source update
+if ($LASTEXITCODE -ne 0) {
+    throw "winget source update failed with exit code $LASTEXITCODE"
+}
 Write-Success 'Winget sources updated.'
 
 # Suppress DSC WARN-level trace output (e.g. runcommandonset idempotency noise).
@@ -180,7 +187,12 @@ foreach ($configFile in $DSC_CONFIGS) {
         $prevPref = $ErrorActionPreference
         $ErrorActionPreference = 'Continue'
         $rawOutput = dsc config set --file $configPath --output-format json 2>&1
+        $dscExitCode = $LASTEXITCODE
         $ErrorActionPreference = $prevPref
+
+        if ($dscExitCode -ne 0) {
+            throw "DSC failed with exit code $dscExitCode"
+        }
 
         # Split stream: ErrorRecord = stderr (DSC errors), string = stdout (JSON)
         $stderrLines = @($rawOutput | Where-Object { $_ -is [System.Management.Automation.ErrorRecord] } |
