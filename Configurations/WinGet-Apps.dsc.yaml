@@ -293,6 +293,13 @@ resources:
       source: winget
       _exist: true
 
+  - name: PolyStudio
+    type: Microsoft.WinGet/Package
+    properties:
+      id: Poly.PolyStudio
+      source: winget
+      _exist: true
+
   - name: mRemoteNG
     type: Microsoft.WinGet/Package
     properties:
