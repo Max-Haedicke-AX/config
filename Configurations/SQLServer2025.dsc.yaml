@@ -8,6 +8,7 @@ $schema: https://aka.ms/dsc/schemas/v3/bundled/config/document.json
 #   - DSC v3 installed: winget install Microsoft.DSC
 #
 # Usage (default instance):
+#   (sa password defaults to the SaPassword parameter; override via $env:SQL_SA_PASSWORD)
 #   dsc config set --file SQLServer2025.dsc.yaml
 #
 # Usage (named instance with custom params):
@@ -17,6 +18,11 @@ $schema: https://aka.ms/dsc/schemas/v3/bundled/config/document.json
 #     "SqlSysAdminAccounts": "VEDOM1\\Max.HAEDICKE",
 #     "Features":            "SQLENGINE,FULLTEXT"
 #   }'
+#
+# Logging / troubleshooting:
+#   winget log:    %ProgramData%\DSC-Logs\SQLServer2025_<timestamp>.log (SA password masked)
+#   SQL setup log: C:\Program Files\Microsoft SQL Server\170\Setup Bootstrap\Log\Summary.txt
+#   On failure the tail of Summary.txt is printed and the configuration aborts.
 #
 # Current configuration (from ConfigurationFile.ini):
 #   Instance:      SQL2025 (named instance)
@@ -86,10 +92,18 @@ parameters:
   # ── Security ─────────────────────────────────────────────────────────────────
   SqlSysAdminAccounts:
     type: string
-    defaultValue: VEDOM1\Max.HAEDICKE
+    defaultValue: ""
     description: >
       Space-separated Windows accounts to provision as SQL Server sysadmins.
-      Current: VEDOM1\Max.HAEDICKE
+      Empty (default) = the account running this configuration
+      (DOMAIN\User of the current session).
+
+  SaPassword:
+    type: string
+    defaultValue: Pass@Word1
+    description: >
+      Password for the 'sa' login (only used when SqlSecurityMode = SQL).
+      The environment variable SQL_SA_PASSWORD overrides this default.
 
   # ── Directories ──────────────────────────────────────────────────────────────
   InstallSharedDir:
@@ -252,8 +266,21 @@ resources:
         - -Command
         - >-
           [concat(
-            '$instanceExists = [bool](Get-Service -Name ''MSSQL$', parameters('InstanceName'), ''' -ErrorAction SilentlyContinue);',
-            'if ($instanceExists) { Write-Host "[SKIP] SQL Server instance already installed: ', parameters('InstanceName'), '" } else {',
+            '$inst = "', parameters('InstanceName'), '";',
+            '$svcName = "MSSQL`$$inst";',
+            'if (Get-Service -Name $svcName -ErrorAction SilentlyContinue) { Write-Host "[SKIP] SQL Server instance already installed: $inst"; exit 0 };',
+            '$start = Get-Date;',
+            '$isAdmin = ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator);',
+            'if (-not $isAdmin) { Write-Error "SQL Server setup requires an elevated (Administrator) session."; exit 1 };',
+            '$rebootKeys = @("HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Component Based Servicing\RebootPending", "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\WindowsUpdate\Auto Update\RebootRequired");',
+            '$pendingReboot = [bool]($rebootKeys | Where-Object { Test-Path $_ }) -or [bool](Get-ItemProperty "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager" -Name PendingFileRenameOperations -ErrorAction SilentlyContinue);',
+            'if ($pendingReboot) { Write-Error "A reboot is pending. Restart Windows and re-run (SQL setup rule RebootRequiredCheck would fail)."; exit 1 };',
+            '$sysAdmin = "', parameters('SqlSysAdminAccounts'), '";',
+            'if ([string]::IsNullOrWhiteSpace($sysAdmin)) { $sysAdmin = "$env:USERDOMAIN\$env:USERNAME" };',
+            'Write-Host "SQL sysadmin account: $sysAdmin";',
+            '$saArg = "";',
+            '$saPassword = $env:SQL_SA_PASSWORD; if ([string]::IsNullOrEmpty($saPassword)) { $saPassword = "', parameters('SaPassword'), '" };',
+            'if ("', parameters('SqlSecurityMode'), '" -eq "SQL") { $saArg = " /SAPWD=`"$saPassword`"" };',
             '$sqlArgs = ''/QS /ACTION=Install /ENU=True /LCID=1033',
             ' /FEATURES=', parameters('Features'),
             ' /INSTANCENAME=', parameters('InstanceName'),
@@ -265,7 +292,7 @@ resources:
             ' /SQLSVCSTARTUPTYPE=', parameters('SqlSvcStartupType'),
             ' /AGTSVCACCOUNT="', parameters('AgtSvcAccount'), '"',
             ' /AGTSVCSTARTUPTYPE=', parameters('AgtSvcStartupType'),
-            ' /SQLSYSADMINACCOUNTS="', parameters('SqlSysAdminAccounts'), '"',
+            ' /SQLSYSADMINACCOUNTS="'' + $sysAdmin + ''"',
             ' /SQLUSERDBDIR="', parameters('SqlUserDbDir'), '"',
             ' /SQLUSERDBLOGDIR="', parameters('SqlUserDbLogDir'), '"',
             ' /SQLBACKUPDIR="', parameters('SqlBackupDir'), '"',
@@ -280,13 +307,21 @@ resources:
             ' /SECURITYMODE=', parameters('SqlSecurityMode'),
             ' /TCPENABLED=', string(parameters('TcpEnabled')),
             ' /NPENABLED=0',
-            ' /IACCEPTSQLSERVERLICENSETERMS'';',
-            ' winget install --id Microsoft.SQLServer.2025.Developer',
-            ' --exact --silent',
-            ' --accept-package-agreements --accept-source-agreements',
-            ' --locale en-US',
-            ' --override $sqlArgs',
-            '}'
+            ' /IACCEPTSQLSERVERLICENSETERMS'' + $saArg;',
+            '$logDir = "$env:ProgramData\DSC-Logs"; New-Item -ItemType Directory -Force -Path $logDir | Out-Null;',
+            '$wingetLog = Join-Path $logDir ("SQLServer2025_" + (Get-Date -Format yyyyMMdd_HHmmss) + ".log");',
+            'Write-Host "Installing SQL Server instance $inst (winget log: $wingetLog)";',
+            'winget install --id Microsoft.SQLServer.2025.Developer --exact --silent --accept-package-agreements --accept-source-agreements --locale en-US --log $wingetLog --override $sqlArgs;',
+            '$rc = $LASTEXITCODE;',
+            'if (Test-Path $wingetLog) { (Get-Content -Raw $wingetLog) -replace ''/SAPWD="[^"]*"'', ''/SAPWD="***"'' | Set-Content $wingetLog };',
+            'if ($rc -ne 0) {',
+            ' Write-Host "winget / SQL setup failed with exit code $rc (winget log: $wingetLog)";',
+            ' $summary = Get-ChildItem "$env:ProgramFiles\Microsoft SQL Server\*\Setup Bootstrap\Log\Summary.txt" -ErrorAction SilentlyContinue | Where-Object { $_.LastWriteTime -gt $start } | Sort-Object LastWriteTime -Descending | Select-Object -First 1;',
+            ' if ($summary) { Write-Host "--- $($summary.FullName) (last 60 lines) ---"; Get-Content $summary.FullName -Tail 60 } else { Write-Host "No new SQL setup Summary.txt found - setup probably did not start (download/installer problem, see winget log)." };',
+            ' exit 1',
+            '};',
+            'if (-not (Get-Service -Name $svcName -ErrorAction SilentlyContinue)) { Write-Error "Setup returned success but service $svcName does not exist. See $wingetLog and the SQL Setup Bootstrap Log folder."; exit 1 };',
+            'Write-Host "[OK] SQL Server instance $inst installed. winget log: $wingetLog"'
           )]
 
   # ── 3. Windows Firewall rule for SQL Server (only if TCP/IP enabled) ───────────
@@ -316,37 +351,36 @@ resources:
         - -Command
         - >-
           [concat(
-            '$serverInstance = ".\', parameters('InstanceName'), '";',
+            '$inst = "', parameters('InstanceName'), '";',
+            '$serverInstance = ".\$inst";',
+            '$svcName = "MSSQL`$$inst";',
             '$tcpEnabled = ', string(parameters('TcpEnabled')), ';',
             '$tcpPort = "', parameters('TcpPort'), '";',
+            '$svc = $null;',
+            'for ($i = 0; $i -lt 12; $i++) { $svc = Get-Service -Name $svcName -ErrorAction SilentlyContinue; if (-not $svc -or $svc.Status -eq "Running") { break }; Start-Sleep -Seconds 5 };',
+            'if (-not $svc) { Write-Error "Validation failed: service $svcName not found - SQL Server was not installed. See $env:ProgramData\DSC-Logs and the SQL Setup Bootstrap Log folder."; exit 1 };',
+            'if ($svc.Status -ne "Running") { Write-Error "Validation failed: service $svcName is $($svc.Status)."; exit 1 };',
+            'Write-Host "[OK] Service $svcName is running";',
             'try {
-              Add-Type -AssemblyName "Microsoft.SqlServer.Management.Common" -ErrorAction SilentlyContinue;
+              Add-Type -AssemblyName "Microsoft.SqlServer.Management.Common" -ErrorAction Stop;
               $conn = New-Object "Microsoft.SqlServer.Management.Common.ServerConnection" $serverInstance;
               $conn.Connect();
               $server = New-Object "Microsoft.SqlServer.Management.Smo.Server" $conn;
-              Write-Host "════════════════════════════════════════════════════════════════";
-              Write-Host "✓ SQL Server 2025 Post-Installation Validation";
-              Write-Host "════════════════════════════════════════════════════════════════";
               Write-Host "Instance Information:";
               Write-Host "  Instance Name    : $serverInstance";
               Write-Host "  Server Name      : $($server.Name)";
               Write-Host "  Version          : $($server.Version.Major).$($server.Version.Minor) Build $($server.Version.Build)";
               Write-Host "  Edition          : $($server.Edition)";
               Write-Host "  Collation        : $($server.Collation)";
-              Write-Host "Authentication:";
               $loginMode = $server.Settings.LoginMode;
               $modeStr = if ($loginMode -eq 1) { "Windows Only" } elseif ($loginMode -eq 2) { "Mixed Mode" } else { "Unknown" };
-              Write-Host "  Mode             : $modeStr";
-              Write-Host "TempDB Configuration:";
+              Write-Host "  Auth Mode        : $modeStr";
               $fileCount = $server.ConnectionContext.ExecuteScalar("SELECT COUNT(*) FROM sys.master_files WHERE db_id = 2 AND type = 0");
-              Write-Host "  Data Files       : $fileCount (expected: 8)";
-              Write-Host "Network Protocol:";
+              Write-Host "  TempDB data files: $fileCount";
               if ($tcpEnabled -eq 1) { Write-Host "  TCP/IP Enabled   : Yes (port $tcpPort)" } else { Write-Host "  TCP/IP Enabled   : No" };
-              Write-Host "✓ Configuration validation complete!";
               $conn.Disconnect()
             } catch {
-              Write-Host "⚠ Validation warning: $_";
-              Write-Host "  (This is non-fatal - SQL Server may still be initializing)"
+              Write-Host "[INFO] Detailed validation skipped (SMO not available yet or connect failed): $_"
             }'
           )]
 

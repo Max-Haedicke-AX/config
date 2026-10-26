@@ -40,20 +40,23 @@ resources:
             'aaron-bond.better-comments',
             'andrzejzwierzchowski.al-code-outline',
             'ankitbko.vscode-pull-request-azdo',
+            'anthropic.claude-code',
+            'arthurvdv.alcops',
+            'axiansinfoma.bc-symbols-downloader',
             'bierner.markdown-mermaid',
             'bioinfo.markitdown-vscode',
             'christian-kohler.npm-intellisense',
             'davidanson.vscode-markdownlint',
             'davidfeldhoff.al-codeactions',
-            'docker.docker',
             'donjayamanne.githistory',
             'eamodio.gitlens',
             'editorconfig.editorconfig',
             'esbenp.prettier-vscode',
             'fanaticpythoner.better-todo-tree',
             'formulahendry.auto-rename-tag',
-            'formulahendry.dotnet-test-explorer',
+            'github.remotehub',
             'heaths.vscode-guid',
+            'immanueltikhonov.droast',
             'inferrinizzard.prettier-sql-vscode',
             'jeremycaron.csharp-organize-usings',
             'jeremyvyska.bc-code-intelligence',
@@ -75,21 +78,46 @@ resources:
             'ms-vscode-remote.remote-ssh',
             'ms-vscode-remote.remote-ssh-edit',
             'ms-vscode-remote.remote-wsl',
+            'ms-vscode.azure-repos',
             'ms-vscode.cpptools',
+            'ms-vscode.cpptools-extension-pack',
+            'ms-vscode.cpptools-themes',
             'ms-vscode.powershell',
             'ms-vscode.remote-explorer',
-            'postman.postman-for-vscode',
-            'stefanmaron.businesscentral-lintercop',
+            'ms-vscode.remote-repositories',
+            'qwtel.sqlite-viewer',
+            'recent-graduates.ralph-runner',
+            'redhat.vscode-xml',
+            'redhat.vscode-yaml',
+            'srmeyers.git-prefix',
             'streetsidesoftware.code-spell-checker',
             'streetsidesoftware.code-spell-checker-german',
             'tomoki1207.pdf',
+            'uctakeoff.vscode-counter',
             'usernamehw.errorlens',
             'vscode-icons-team.vscode-icons',
             'waldo.crs-al-language-extension',
             'waldobc.bc-telemetry-buddy',
             'yzane.markdown-pdf'
           )
+
+          # 'code' is not in PATH of the running process right after the winget install
+          $code = (Get-Command code.cmd -ErrorAction SilentlyContinue).Source
+          if (-not $code) {
+            $code = @(
+              "$env:LOCALAPPDATA\Programs\Microsoft VS Code\bin\code.cmd",
+              "$env:ProgramFiles\Microsoft VS Code\bin\code.cmd"
+            ) | Where-Object { Test-Path $_ } | Select-Object -First 1
+          }
+          if (-not $code) { Write-Error 'VS Code CLI (code.cmd) not found'; exit 1 }
+
+          $failed = @()
           foreach ($ext in $extensions) {
             Write-Host "Installing extension: $ext"
-            code --install-extension $ext --force
+            & $code --install-extension $ext --force
+            if ($LASTEXITCODE -ne 0) { $failed += $ext }
+          }
+          if ($failed.Count -gt 0) {
+            Write-Error "Failed extensions: $($failed -join ', ')"
+            exit 1
           }
