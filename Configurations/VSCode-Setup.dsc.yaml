@@ -109,15 +109,21 @@ resources:
               "$env:ProgramFiles\Microsoft VS Code\bin\code.cmd"
             ) | Where-Object { Test-Path $_ } | Select-Object -First 1
           }
-          if (-not $code) { Write-Error 'VS Code CLI (code.cmd) not found'; exit 1 }
+          # DSC swallows stderr, so report via Write-Host (stdout)
+          if (-not $code) { Write-Host 'ERROR: VS Code CLI (code.cmd) not found'; exit 1 }
 
           $failed = @()
           foreach ($ext in $extensions) {
             Write-Host "Installing extension: $ext"
-            & $code --install-extension $ext --force
+            # retry once to absorb transient marketplace errors
+            foreach ($attempt in 1..2) {
+              $output = & $code --install-extension $ext --force 2>&1 | Out-String
+              if ($LASTEXITCODE -eq 0) { break }
+              Write-Host "  attempt $attempt failed (exit $LASTEXITCODE): $($output.Trim())"
+            }
             if ($LASTEXITCODE -ne 0) { $failed += $ext }
           }
           if ($failed.Count -gt 0) {
-            Write-Error "Failed extensions: $($failed -join ', ')"
+            Write-Host "ERROR: Failed extensions: $($failed -join ', ')"
             exit 1
           }

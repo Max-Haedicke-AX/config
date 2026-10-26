@@ -92,10 +92,10 @@ parameters:
   # ── Security ─────────────────────────────────────────────────────────────────
   SqlSysAdminAccounts:
     type: string
-    defaultValue: ""
+    defaultValue: "[concat(envvar('USERDOMAIN'), '\\', envvar('USERNAME'))]"
     description: >
       Space-separated Windows accounts to provision as SQL Server sysadmins.
-      Empty (default) = the account running this configuration
+      Default = the account running this configuration
       (DOMAIN\User of the current session).
 
   SaPassword:
